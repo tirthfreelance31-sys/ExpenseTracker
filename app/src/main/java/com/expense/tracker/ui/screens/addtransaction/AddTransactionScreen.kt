@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,7 +70,7 @@ fun AddTransactionScreen(
     var selectedToWalletId by remember { mutableStateOf<Long?>(null) }
     var selectedCategoryId by remember { mutableStateOf<Long?>(null) }
     var noteInput by remember { mutableStateOf("") }
-    var timestamp by remember { mutableStateLongStateOf(System.currentTimeMillis()) }
+    var timestamp by remember { mutableStateOf(System.currentTimeMillis()) }
 
     var isEditMode by remember { mutableStateOf(false) }
     var editingMainTx by remember { mutableStateOf<TransactionEntity?>(null) }
@@ -388,7 +389,7 @@ fun AddTransactionScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        text = dateFormatter.format(Date(timestamp)),
+                                        text = dateFormatter.format(Date(timestamp as Long)),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )
