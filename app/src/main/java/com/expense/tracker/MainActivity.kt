@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
 
         val app = application as ExpenseApp
         val repository = app.repository
+        val preferencesRepository = app.preferencesRepository
 
         setContent {
             ExpenseTrackerTheme {
@@ -23,7 +24,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainAppNavigation(repository = repository)
+                    MainAppNavigation(
+                        repository = repository,
+                        preferencesRepository = preferencesRepository
+                    )
                 }
             }
         }

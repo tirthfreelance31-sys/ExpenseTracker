@@ -59,6 +59,14 @@ class ExpenseRepository(
     // Transactions
     val allTransactions: Flow<List<TransactionEntity>> = transactionDao.getAllTransactions()
 
+    fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> {
+        return transactionDao.getRecentTransactions(limit)
+    }
+
+    fun getRecentExpenses(startTime: Long): Flow<List<TransactionEntity>> {
+        return transactionDao.getRecentExpenses(startTime)
+    }
+
     fun getTransactionsByWallet(walletId: Long): Flow<List<TransactionEntity>> {
         return transactionDao.getTransactionsByWallet(walletId)
     }
@@ -73,5 +81,27 @@ class ExpenseRepository(
 
     suspend fun deleteTransaction(transaction: TransactionEntity) {
         transactionDao.deleteTransaction(transaction)
+    }
+
+    suspend fun updateOpeningBalance(walletId: Long, newOpeningBalance: Double) {
+        val existingWallet = walletDao.getWalletById(walletId) ?: return
+        val updatedWallet = existingWallet.copy(openingBalance = newOpeningBalance)
+        walletDao.updateWallet(updatedWallet)
+
+        val existingOpeningTx = transactionDao.getOpeningBalanceTransactionForWallet(walletId)
+        if (existingOpeningTx != null) {
+            val updatedTx = existingOpeningTx.copy(amount = newOpeningBalance, timestamp = System.currentTimeMillis())
+            transactionDao.updateTransaction(updatedTx)
+        } else {
+            val newTx = TransactionEntity(
+                walletId = walletId,
+                categoryId = null,
+                type = com.expense.tracker.data.model.TransactionType.OPENING_BALANCE,
+                amount = newOpeningBalance,
+                note = "Opening Balance",
+                timestamp = System.currentTimeMillis()
+            )
+            transactionDao.insertTransaction(newTx)
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -15,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.expense.tracker.data.repository.ExpenseRepository
+import com.expense.tracker.data.repository.UserPreferencesRepository
 import com.expense.tracker.ui.screens.addtransaction.AddTransactionScreen
 import com.expense.tracker.ui.screens.categories.CategoriesScreen
 import com.expense.tracker.ui.screens.history.HistoryScreen
@@ -27,17 +29,24 @@ import com.expense.tracker.ui.screens.walletsetup.WalletSetupScreen
 @Composable
 fun MainAppNavigation(
     repository: ExpenseRepository,
+    preferencesRepository: UserPreferencesRepository,
     navController: NavHostController = rememberNavController()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val isSetupCompleted = preferencesRepository.isSetupCompleted
+    val startDestination = if (isSetupCompleted) Screen.Home.route else Screen.WalletSetup.route
+
     val wallets by repository.walletsWithBalance.collectAsState(initial = emptyList())
     val categories by repository.allCategories.collectAsState(initial = emptyList())
+    val recentTransactions by repository.getRecentTransactions(5).collectAsState(initial = emptyList())
+
+    val sevenDaysAgo = remember { System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L }
+    val recentExpenses by repository.getRecentExpenses(sevenDaysAgo).collectAsState(initial = emptyList())
 
     val showBottomBar = currentRoute in listOf(
         Screen.Home.route,
-        Screen.AddTransaction.route,
         Screen.History.route,
         Screen.Summary.route,
         Screen.Settings.route
@@ -75,26 +84,37 @@ fun MainAppNavigation(
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(padding)
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(
                     wallets = wallets,
+                    recentTransactions = recentTransactions,
+                    recentExpenses = recentExpenses,
+                    categories = categories,
                     onNavigateToAddTransaction = { navController.navigate(Screen.AddTransaction.route) },
                     onNavigateToWalletDetail = { walletId ->
                         navController.navigate(Screen.WalletDetail.createRoute(walletId))
                     },
-                    onNavigateToCategories = { navController.navigate(Screen.Categories.route) }
+                    onNavigateToSummary = { navController.navigate(Screen.Summary.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
                 )
             }
 
             composable(Screen.WalletSetup.route) {
                 WalletSetupScreen(
                     wallets = wallets,
-                    onNavigateToHome = { navController.navigate(Screen.Home.route) },
-                    onNavigateToDetail = { walletId ->
-                        navController.navigate(Screen.WalletDetail.createRoute(walletId))
+                    onSaveOpeningBalances = { balancesMap ->
+                        balancesMap.forEach { (walletId, amount) ->
+                            repository.updateOpeningBalance(walletId, amount)
+                        }
+                        preferencesRepository.isSetupCompleted = true
+                    },
+                    onNavigateToHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.WalletSetup.route) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -121,6 +141,9 @@ fun MainAppNavigation(
                 val wallet = wallets.find { it.id == walletId }
                 WalletDetailScreen(
                     wallet = wallet,
+                    onReconcileOpeningBalance = { id, newBalance ->
+                        repository.updateOpeningBalance(id, newBalance)
+                    },
                     onBack = { navController.popBackStack() }
                 )
             }

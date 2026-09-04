@@ -24,6 +24,15 @@ interface TransactionDao {
     @Delete
     suspend fun deleteTransaction(transaction: TransactionEntity)
 
+    @Query("SELECT * FROM transactions ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentTransactions(limit: Int): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE type = 'EXPENSE' AND timestamp >= :startTime ORDER BY timestamp ASC")
+    fun getRecentExpenses(startTime: Long): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE walletId = :walletId AND type = 'OPENING_BALANCE' LIMIT 1")
+    suspend fun getOpeningBalanceTransactionForWallet(walletId: Long): TransactionEntity?
+
     @Query("SELECT COUNT(*) FROM transactions")
     suspend fun getTransactionCount(): Int
 }

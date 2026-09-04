@@ -20,7 +20,6 @@ interface WalletDao {
                 CASE 
                     WHEN t.type IN ('INCOME', 'TRANSFER_IN') THEN t.amount
                     WHEN t.type IN ('EXPENSE', 'TRANSFER_OUT') THEN -t.amount
-                    WHEN t.type = 'OPENING_BALANCE' THEN t.amount
                     ELSE 0.0 
                 END
             ), 0.0) AS currentBalance
@@ -44,7 +43,6 @@ interface WalletDao {
                 CASE 
                     WHEN t.type IN ('INCOME', 'TRANSFER_IN') THEN t.amount
                     WHEN t.type IN ('EXPENSE', 'TRANSFER_OUT') THEN -t.amount
-                    WHEN t.type = 'OPENING_BALANCE' THEN t.amount
                     ELSE 0.0 
                 END
             ), 0.0) AS currentBalance
