@@ -15,6 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.expense.tracker.data.local.entity.TransactionEntity
+import com.expense.tracker.data.model.TransactionType
 import com.expense.tracker.data.repository.ExpenseRepository
 import com.expense.tracker.data.repository.UserPreferencesRepository
 import com.expense.tracker.ui.screens.addtransaction.AddTransactionScreen
@@ -56,17 +58,33 @@ fun MainAppNavigation(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = com.expense.tracker.ui.theme.LedgerPaper,
+                    contentColor = com.expense.tracker.ui.theme.PrimaryText
                 ) {
                     bottomNavItems.forEach { screen ->
+                        val isSelected = currentRoute == screen.route
                         NavigationBarItem(
                             icon = {
                                 screen.icon?.let { icon ->
-                                    Icon(icon, contentDescription = screen.title)
+                                    Icon(
+                                        icon,
+                                        contentDescription = screen.title,
+                                        tint = if (isSelected) com.expense.tracker.ui.theme.RupeeGold else com.expense.tracker.ui.theme.SecondaryText
+                                    )
                                 }
                             },
-                            label = { Text(screen.title) },
-                            selected = currentRoute == screen.route,
+                            label = {
+                                Text(
+                                    screen.title,
+                                    color = if (isSelected) com.expense.tracker.ui.theme.RupeeGold else com.expense.tracker.ui.theme.SecondaryText,
+                                    fontFamily = com.expense.tracker.ui.theme.IbmPlexSans,
+                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                )
+                            },
+                            selected = isSelected,
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = com.expense.tracker.ui.theme.LedgerPaperVariant
+                            ),
                             onClick = {
                                 navController.navigate(screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -93,7 +111,8 @@ fun MainAppNavigation(
                     recentTransactions = recentTransactions,
                     recentExpenses = recentExpenses,
                     categories = categories,
-                    onNavigateToAddTransaction = { navController.navigate(Screen.AddTransaction.route) },
+                    onNavigateToAddTransaction = { navController.navigate(Screen.AddTransaction.createRoute()) },
+                    onEditTransaction = { txId -> navController.navigate(Screen.AddTransaction.createRoute(txId)) },
                     onNavigateToWalletDetail = { walletId ->
                         navController.navigate(Screen.WalletDetail.createRoute(walletId))
                     },
@@ -119,9 +138,140 @@ fun MainAppNavigation(
                 )
             }
 
-            composable(Screen.AddTransaction.route) {
+            composable(
+                route = Screen.AddTransaction.route,
+                arguments = listOf(navArgument("txId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val txIdString = backStackEntry.arguments?.getString("txId")
+                val editingTxId = txIdString?.toLongOrNull()
+
                 AddTransactionScreen(
-                    onTransactionAdded = { navController.navigate(Screen.Home.route) }
+                    editingTransactionId = editingTxId,
+                    wallets = wallets,
+                    categories = categories,
+                    onSaveExpense = { amount, walletId, categoryId, note, timestamp, editingId ->
+                        if (editingId == null) {
+                            val tx = TransactionEntity(
+                                walletId = walletId,
+                                categoryId = categoryId,
+                                type = TransactionType.EXPENSE,
+                                amount = amount,
+                                note = note,
+                                timestamp = timestamp
+                            )
+                            repository.insertTransaction(tx)
+                        } else {
+                            val existing = repository.getTransactionById(editingId)
+                            if (existing != null) {
+                                val updated = existing.copy(
+                                    walletId = walletId,
+                                    categoryId = categoryId,
+                                    type = TransactionType.EXPENSE,
+                                    amount = amount,
+                                    note = note,
+                                    timestamp = timestamp
+                                )
+                                repository.updateTransaction(updated)
+                            }
+                        }
+                    },
+                    onSaveIncome = { amount, walletId, categoryId, note, timestamp, editingId ->
+                        if (editingId == null) {
+                            val tx = TransactionEntity(
+                                walletId = walletId,
+                                categoryId = categoryId,
+                                type = TransactionType.INCOME,
+                                amount = amount,
+                                note = note,
+                                timestamp = timestamp
+                            )
+                            repository.insertTransaction(tx)
+                        } else {
+                            val existing = repository.getTransactionById(editingId)
+                            if (existing != null) {
+                                val updated = existing.copy(
+                                    walletId = walletId,
+                                    categoryId = categoryId,
+                                    type = TransactionType.INCOME,
+                                    amount = amount,
+                                    note = note,
+                                    timestamp = timestamp
+                                )
+                                repository.updateTransaction(updated)
+                            }
+                        }
+                    },
+                    onSaveTransfer = { amount, fromWalletId, toWalletId, note, timestamp, editingFromTxId, editingToTxId, linkedId ->
+                        if (editingFromTxId == null || editingToTxId == null) {
+                            val fromTx = TransactionEntity(
+                                walletId = fromWalletId,
+                                type = TransactionType.TRANSFER_OUT,
+                                amount = amount,
+                                note = note,
+                                timestamp = timestamp
+                            )
+                            val toTx = TransactionEntity(
+                                walletId = toWalletId,
+                                type = TransactionType.TRANSFER_IN,
+                                amount = amount,
+                                note = note,
+                                timestamp = timestamp
+                            )
+                            repository.saveTransfer(fromTx, toTx)
+                        } else {
+                            val existingFrom = repository.getTransactionById(editingFromTxId)
+                            val existingTo = repository.getTransactionById(editingToTxId)
+                            if (existingFrom != null && existingTo != null) {
+                                val updatedFrom = existingFrom.copy(
+                                    walletId = fromWalletId,
+                                    amount = amount,
+                                    note = note,
+                                    timestamp = timestamp,
+                                    linkedTransferId = linkedId ?: existingFrom.linkedTransferId
+                                )
+                                val updatedTo = existingTo.copy(
+                                    walletId = toWalletId,
+                                    amount = amount,
+                                    note = note,
+                                    timestamp = timestamp,
+                                    linkedTransferId = linkedId ?: existingFrom.linkedTransferId
+                                )
+                                repository.updateTransfer(updatedFrom, updatedTo)
+                            }
+                        }
+                    },
+                    onDeleteTransaction = { txId, linkedTransferId ->
+                        if (linkedTransferId != null) {
+                            repository.deleteTransfer(linkedTransferId)
+                        } else {
+                            val tx = repository.getTransactionById(txId)
+                            if (tx != null) {
+                                if (tx.linkedTransferId != null) {
+                                    repository.deleteTransfer(tx.linkedTransferId)
+                                } else {
+                                    repository.deleteTransaction(tx)
+                                }
+                            }
+                        }
+                    },
+                    onFetchTransactionDetails = { txId ->
+                        val tx = repository.getTransactionById(txId)
+                        if (tx != null) {
+                            if (tx.linkedTransferId != null) {
+                                val linkedList = repository.getLinkedTransactions(tx.linkedTransferId)
+                                val mainTx = linkedList.find { it.id == txId } ?: tx
+                                val otherTx = linkedList.find { it.id != mainTx.id }
+                                Pair(mainTx, otherTx)
+                            } else {
+                                Pair(tx, null)
+                            }
+                        } else null
+                    },
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

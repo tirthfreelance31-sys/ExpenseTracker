@@ -13,7 +13,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
     object Home : Screen("home", "Home", Icons.Default.Home)
-    object AddTransaction : Screen("add_transaction", "Add Transaction", Icons.Default.AddCircle)
+    object AddTransaction : Screen("add_transaction?txId={txId}", "Add Transaction", Icons.Default.AddCircle) {
+        fun createRoute(txId: Long? = null) = if (txId != null) "add_transaction?txId=$txId" else "add_transaction"
+    }
     object History : Screen("history", "History", Icons.Default.History)
     object Summary : Screen("summary", "Summary", Icons.Default.PieChart)
     object WalletSetup : Screen("wallet_setup", "Wallet Setup", Icons.Default.AccountBalanceWallet)

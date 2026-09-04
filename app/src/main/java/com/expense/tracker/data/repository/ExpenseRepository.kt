@@ -71,6 +71,14 @@ class ExpenseRepository(
         return transactionDao.getTransactionsByWallet(walletId)
     }
 
+    suspend fun getTransactionById(id: Long): TransactionEntity? {
+        return transactionDao.getTransactionById(id)
+    }
+
+    suspend fun getLinkedTransactions(linkedTransferId: Long): List<TransactionEntity> {
+        return transactionDao.getLinkedTransactions(linkedTransferId)
+    }
+
     suspend fun insertTransaction(transaction: TransactionEntity): Long {
         return transactionDao.insertTransaction(transaction)
     }
@@ -81,6 +89,18 @@ class ExpenseRepository(
 
     suspend fun deleteTransaction(transaction: TransactionEntity) {
         transactionDao.deleteTransaction(transaction)
+    }
+
+    suspend fun saveTransfer(fromTx: TransactionEntity, toTx: TransactionEntity) {
+        transactionDao.insertTransfer(fromTx, toTx)
+    }
+
+    suspend fun updateTransfer(fromTx: TransactionEntity, toTx: TransactionEntity) {
+        transactionDao.updateTransfer(fromTx, toTx)
+    }
+
+    suspend fun deleteTransfer(linkedTransferId: Long) {
+        transactionDao.deleteTransferByLinkedId(linkedTransferId)
     }
 
     suspend fun updateOpeningBalance(walletId: Long, newOpeningBalance: Double) {
