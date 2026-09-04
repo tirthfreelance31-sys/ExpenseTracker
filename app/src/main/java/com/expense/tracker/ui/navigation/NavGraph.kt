@@ -1,0 +1,140 @@
+package com.expense.tracker.ui.navigation
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.expense.tracker.data.repository.ExpenseRepository
+import com.expense.tracker.ui.screens.addtransaction.AddTransactionScreen
+import com.expense.tracker.ui.screens.categories.CategoriesScreen
+import com.expense.tracker.ui.screens.history.HistoryScreen
+import com.expense.tracker.ui.screens.home.HomeScreen
+import com.expense.tracker.ui.screens.settings.SettingsScreen
+import com.expense.tracker.ui.screens.summary.SummaryScreen
+import com.expense.tracker.ui.screens.walletdetail.WalletDetailScreen
+import com.expense.tracker.ui.screens.walletsetup.WalletSetupScreen
+
+@Composable
+fun MainAppNavigation(
+    repository: ExpenseRepository,
+    navController: NavHostController = rememberNavController()
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val wallets by repository.walletsWithBalance.collectAsState(initial = emptyList())
+    val categories by repository.allCategories.collectAsState(initial = emptyList())
+
+    val showBottomBar = currentRoute in listOf(
+        Screen.Home.route,
+        Screen.AddTransaction.route,
+        Screen.History.route,
+        Screen.Summary.route,
+        Screen.Settings.route
+    )
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    bottomNavItems.forEach { screen ->
+                        NavigationBarItem(
+                            icon = {
+                                screen.icon?.let { icon ->
+                                    Icon(icon, contentDescription = screen.title)
+                                }
+                            },
+                            label = { Text(screen.title) },
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(padding)
+        ) {
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    wallets = wallets,
+                    onNavigateToAddTransaction = { navController.navigate(Screen.AddTransaction.route) },
+                    onNavigateToWalletDetail = { walletId ->
+                        navController.navigate(Screen.WalletDetail.createRoute(walletId))
+                    },
+                    onNavigateToCategories = { navController.navigate(Screen.Categories.route) }
+                )
+            }
+
+            composable(Screen.WalletSetup.route) {
+                WalletSetupScreen(
+                    wallets = wallets,
+                    onNavigateToHome = { navController.navigate(Screen.Home.route) },
+                    onNavigateToDetail = { walletId ->
+                        navController.navigate(Screen.WalletDetail.createRoute(walletId))
+                    }
+                )
+            }
+
+            composable(Screen.AddTransaction.route) {
+                AddTransactionScreen(
+                    onTransactionAdded = { navController.navigate(Screen.Home.route) }
+                )
+            }
+
+            composable(Screen.History.route) {
+                HistoryScreen()
+            }
+
+            composable(Screen.Summary.route) {
+                SummaryScreen()
+            }
+
+            composable(
+                route = Screen.WalletDetail.route,
+                arguments = listOf(navArgument("walletId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val walletId = backStackEntry.arguments?.getLong("walletId") ?: 0L
+                val wallet = wallets.find { it.id == walletId }
+                WalletDetailScreen(
+                    wallet = wallet,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Categories.route) {
+                CategoriesScreen(
+                    categories = categories,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Settings.route) {
+                SettingsScreen()
+            }
+        }
+    }
+}
