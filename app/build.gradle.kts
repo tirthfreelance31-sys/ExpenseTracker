@@ -71,7 +71,6 @@ dependencies {
 
     // SQLCipher Encryption
     implementation(libs.sqlcipher.android)
-    implementation(libs.androidx.sqlite)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

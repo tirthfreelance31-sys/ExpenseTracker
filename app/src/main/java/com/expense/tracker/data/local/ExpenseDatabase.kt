@@ -15,7 +15,8 @@ import com.expense.tracker.data.model.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.zetetic.database.sqlcipher.SupportFactory
+import net.sqlcipher.database.SQLiteDatabase
+import net.sqlcipher.database.SupportFactory
 
 @Database(
     entities = [
@@ -38,7 +39,7 @@ abstract class ExpenseDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context, passphrase: ByteArray? = "expense_tracker_secure_key_2026".toByteArray()): ExpenseDatabase {
             return INSTANCE ?: synchronized(this) {
-                net.zetetic.database.sqlcipher.SQLiteDatabase.loadLibs(context)
+                SQLiteDatabase.loadLibs(context)
 
                 val builder = Room.databaseBuilder(
                     context.applicationContext,
