@@ -1,6 +1,7 @@
 package com.expense.tracker.ui.screens.walletsetup
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,22 +10,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.expense.tracker.data.model.WalletWithBalance
 import com.expense.tracker.data.model.WalletType
+import com.expense.tracker.data.model.WalletWithBalance
+import com.expense.tracker.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +41,7 @@ fun WalletSetupScreen(
     val balanceInputs = remember { mutableStateMapOf<Long, String>() }
     var isSaving by remember { mutableStateOf(false) }
 
-    // Pre-populate input fields with existing opening balances or default empty/zero string
+    // Pre-populate input fields with existing opening balances or default zero string
     LaunchedEffect(wallets) {
         wallets.forEach { wallet ->
             if (!balanceInputs.containsKey(wallet.id)) {
@@ -52,17 +52,20 @@ fun WalletSetupScreen(
     }
 
     Scaffold(
+        containerColor = LedgerInk,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Set up your wallets",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        text = "INITIAL LEDGER SETUP",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = RupeeGold,
+                        letterSpacing = 1.2.sp
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = LedgerInk
                 )
             )
         }
@@ -72,39 +75,61 @@ fun WalletSetupScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
+            // Header Instructions Card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(4.dp),
+                color = LedgerPaper,
+                border = BorderStroke(1.dp, LedgerDivider)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
-                        text = "Set Initial Balances",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "FOLIO OPENING BALANCES",
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = SecondaryText,
+                        letterSpacing = 1.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Enter starting funds for each wallet. You can set 0 or any positive amount.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Specify starting funds for each account folio. This records your initial ledger audit baseline. You can adjust this anytime via account reconciliation.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PrimaryText
                     )
                 }
             }
 
+            // Section Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
+                Text(
+                    text = "ACCOUNTS & FOLIOS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = SecondaryText,
+                    letterSpacing = 1.sp
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
+            }
+
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(wallets) { wallet ->
                     val accentColor = when (wallet.name.lowercase()) {
-                        "upi" -> Color(0xFF2196F3)
-                        "cash" -> Color(0xFF4CAF50)
-                        "savings" -> Color(0xFFFF9800)
-                        else -> Color(android.graphics.Color.parseColor(wallet.colorHex.ifEmpty { "#2196F3" }))
+                        "upi" -> StampIndigo
+                        "cash" -> CurrencyGreen
+                        "savings" -> RupeeGold
+                        else -> RupeeGold
                     }
 
                     val icon = when (wallet.name.lowercase()) {
@@ -113,44 +138,45 @@ fun WalletSetupScreen(
                         else -> Icons.Default.AccountBalanceWallet
                     }
 
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(14.dp),
+                    Surface(
+                        shape = RoundedCornerShape(3.dp),
+                        color = LedgerPaper,
+                        border = BorderStroke(1.dp, LedgerDivider),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(accentColor),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = Color.White
-                                    )
-                                }
+                                        .width(3.dp)
+                                        .height(30.dp)
+                                        .background(accentColor, RoundedCornerShape(1.dp))
+                                )
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = accentColor,
+                                    modifier = Modifier.size(20.dp)
+                                )
                                 Column {
                                     Text(
                                         text = wallet.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryText
                                     )
                                     Text(
-                                        text = if (wallet.type == WalletType.DIGITAL) "Digital Wallet" else "Physical Wallet",
+                                        text = if (wallet.type == WalletType.DIGITAL) "Digital Folio" else "Physical Cash",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = SecondaryText
                                     )
                                 }
                             }
@@ -158,44 +184,53 @@ fun WalletSetupScreen(
                             OutlinedTextField(
                                 value = balanceInputs[wallet.id] ?: "0",
                                 onValueChange = { newValue ->
-                                    // Allow numbers and single decimal point
                                     if (newValue.isEmpty() || newValue.matches(Regex("""^\d*\.?\d*$"""))) {
                                         balanceInputs[wallet.id] = newValue
                                     }
                                 },
-                                label = { Text("Initial Balance") },
-                                prefix = { Text("₹ ") },
+                                label = { Text("Opening Balance", style = MaterialTheme.typography.bodySmall) },
+                                prefix = {
+                                    Text(
+                                        text = "₹ ",
+                                        style = TextStyle(
+                                            fontFamily = SpaceGrotesk,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
+                                            color = RupeeGold
+                                        )
+                                    )
+                                },
+                                textStyle = TextStyle(
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = PrimaryText,
+                                    fontFeatureSettings = "tnum"
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = RupeeGold,
+                                    unfocusedBorderColor = LedgerDivider,
+                                    focusedContainerColor = LedgerInk,
+                                    unfocusedContainerColor = LedgerInk,
+                                    cursorColor = RupeeGold,
+                                    focusedLabelColor = RupeeGold,
+                                    unfocusedLabelColor = SecondaryText
+                                ),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(3.dp)
                             )
                         }
                     }
                 }
-
-                item {
-                    OutlinedButton(
-                        onClick = {
-                            Toast.makeText(context, "Custom wallets feature coming soon!", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("+ Add another wallet", fontWeight = FontWeight.SemiBold)
-                    }
-                }
             }
 
+            // Primary Action Button
             Button(
                 onClick = {
                     if (isSaving) return@Button
 
-                    // Validate balance inputs
                     val finalBalances = mutableMapOf<Long, Double>()
                     var hasError = false
 
@@ -219,20 +254,30 @@ fun WalletSetupScreen(
                     }
                 },
                 enabled = !isSaving,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = RupeeGold,
+                    contentColor = LedgerInk
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp)
+                    .height(48.dp),
+                shape = RoundedCornerShape(4.dp)
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(22.dp),
+                        color = LedgerInk,
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Continue", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "OPEN PASSBOOK LEDGER",
+                        fontFamily = IbmPlexSans,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
         }

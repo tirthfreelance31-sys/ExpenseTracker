@@ -43,6 +43,7 @@ fun MainAppNavigation(
     val wallets by repository.walletsWithBalance.collectAsState(initial = emptyList())
     val categories by repository.allCategories.collectAsState(initial = emptyList())
     val recentTransactions by repository.getRecentTransactions(5).collectAsState(initial = emptyList())
+    val allTransactions by repository.allTransactions.collectAsState(initial = emptyList())
 
     val sevenDaysAgo = remember { System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L }
     val recentExpenses by repository.getRecentExpenses(sevenDaysAgo).collectAsState(initial = emptyList())
@@ -276,11 +277,20 @@ fun MainAppNavigation(
             }
 
             composable(Screen.History.route) {
-                HistoryScreen()
+                HistoryScreen(
+                    transactions = allTransactions,
+                    wallets = wallets,
+                    categories = categories,
+                    onEditTransaction = { txId -> navController.navigate(Screen.AddTransaction.createRoute(txId)) }
+                )
             }
 
             composable(Screen.Summary.route) {
-                SummaryScreen()
+                SummaryScreen(
+                    wallets = wallets,
+                    recentExpenses = recentExpenses,
+                    categories = categories
+                )
             }
 
             composable(
@@ -289,11 +299,15 @@ fun MainAppNavigation(
             ) { backStackEntry ->
                 val walletId = backStackEntry.arguments?.getLong("walletId") ?: 0L
                 val wallet = wallets.find { it.id == walletId }
+                val walletTransactions by repository.getTransactionsByWallet(walletId).collectAsState(initial = emptyList())
                 WalletDetailScreen(
                     wallet = wallet,
+                    transactions = walletTransactions,
+                    categories = categories,
                     onReconcileOpeningBalance = { id, newBalance ->
                         repository.updateOpeningBalance(id, newBalance)
                     },
+                    onEditTransaction = { txId -> navController.navigate(Screen.AddTransaction.createRoute(txId)) },
                     onBack = { navController.popBackStack() }
                 )
             }
