@@ -7,6 +7,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -59,8 +61,9 @@ fun MainAppNavigation(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
-                    containerColor = com.expense.tracker.ui.theme.LedgerPaper,
-                    contentColor = com.expense.tracker.ui.theme.PrimaryText
+                    containerColor = com.expense.tracker.ui.theme.SurfacePrimary,
+                    contentColor = com.expense.tracker.ui.theme.TextSecondary,
+                    tonalElevation = 3.dp
                 ) {
                     bottomNavItems.forEach { screen ->
                         val isSelected = currentRoute == screen.route
@@ -70,21 +73,26 @@ fun MainAppNavigation(
                                     Icon(
                                         icon,
                                         contentDescription = screen.title,
-                                        tint = if (isSelected) com.expense.tracker.ui.theme.RupeeGold else com.expense.tracker.ui.theme.SecondaryText
+                                        tint = if (isSelected) com.expense.tracker.ui.theme.BrandViolet else com.expense.tracker.ui.theme.TextSecondary
                                     )
                                 }
                             },
                             label = {
                                 Text(
                                     screen.title,
-                                    color = if (isSelected) com.expense.tracker.ui.theme.RupeeGold else com.expense.tracker.ui.theme.SecondaryText,
+                                    color = if (isSelected) com.expense.tracker.ui.theme.BrandViolet else com.expense.tracker.ui.theme.TextSecondary,
                                     fontFamily = com.expense.tracker.ui.theme.IbmPlexSans,
-                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Normal,
+                                    fontSize = 12.sp
                                 )
                             },
                             selected = isSelected,
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = com.expense.tracker.ui.theme.LedgerPaperVariant
+                                indicatorColor = com.expense.tracker.ui.theme.BrandViolet.copy(alpha = 0.12f),
+                                selectedIconColor = com.expense.tracker.ui.theme.BrandViolet,
+                                unselectedIconColor = com.expense.tracker.ui.theme.TextSecondary,
+                                selectedTextColor = com.expense.tracker.ui.theme.BrandViolet,
+                                unselectedTextColor = com.expense.tracker.ui.theme.TextSecondary
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {
