@@ -6,9 +6,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.expense.tracker.ui.components.QuickAddBottomSheet
+import com.expense.tracker.util.rememberShakeDetector
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -62,6 +66,14 @@ fun MainAppNavigation(
         Screen.Summary.route,
         Screen.Settings.route
     )
+
+    var showQuickAddSheet by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Global Shake-to-Add detector: active when wallet setup is done and sheet is not already open
+    rememberShakeDetector(enabled = isSetupCompleted && !showQuickAddSheet) {
+        showQuickAddSheet = true
+    }
 
     Scaffold(
         bottomBar = {
@@ -402,6 +414,60 @@ fun MainAppNavigation(
                     }
                 )
             }
+        }
+
+        if (showQuickAddSheet) {
+            QuickAddBottomSheet(
+                wallets = wallets,
+                categories = categories,
+                onSaveExpense = { amount, walletId, categoryId, note ->
+                    coroutineScope.launch {
+                        val tx = TransactionEntity(
+                            walletId = walletId,
+                            categoryId = categoryId,
+                            type = TransactionType.EXPENSE,
+                            amount = amount,
+                            note = note,
+                            timestamp = System.currentTimeMillis()
+                        )
+                        repository.insertTransaction(tx)
+                    }
+                },
+                onSaveIncome = { amount, walletId, categoryId, note ->
+                    coroutineScope.launch {
+                        val tx = TransactionEntity(
+                            walletId = walletId,
+                            categoryId = categoryId,
+                            type = TransactionType.INCOME,
+                            amount = amount,
+                            note = note,
+                            timestamp = System.currentTimeMillis()
+                        )
+                        repository.insertTransaction(tx)
+                    }
+                },
+                onSaveTransfer = { amount, fromWalletId, toWalletId, note ->
+                    coroutineScope.launch {
+                        val timestamp = System.currentTimeMillis()
+                        val fromTx = TransactionEntity(
+                            walletId = fromWalletId,
+                            type = TransactionType.TRANSFER_OUT,
+                            amount = amount,
+                            note = note,
+                            timestamp = timestamp
+                        )
+                        val toTx = TransactionEntity(
+                            walletId = toWalletId,
+                            type = TransactionType.TRANSFER_IN,
+                            amount = amount,
+                            note = note,
+                            timestamp = timestamp
+                        )
+                        repository.saveTransfer(fromTx, toTx)
+                    }
+                },
+                onDismiss = { showQuickAddSheet = false }
+            )
         }
     }
 }
