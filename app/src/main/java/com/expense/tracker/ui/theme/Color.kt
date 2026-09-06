@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 // 1. LIGHT PALETTE - Warm Fintech Identity
 // ==========================================
 val DeepTeal = Color(0xFF167C80)              // Primary brand color
+val PrimaryDark = Color(0xFF12686B)           // Primary dark accent
 val WarmOffWhite = Color(0xFFF7F5F0)          // Main background
 val WarmWhite = Color(0xFFFFFDF9)             // Card / surface
 val Charcoal = Color(0xFF202322)              // Primary text

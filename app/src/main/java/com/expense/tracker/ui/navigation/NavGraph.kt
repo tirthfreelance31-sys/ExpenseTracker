@@ -1,5 +1,6 @@
 package com.expense.tracker.ui.navigation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -7,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -60,50 +62,62 @@ fun MainAppNavigation(
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = com.expense.tracker.ui.theme.AppTheme.colors.surface,
-                    contentColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
-                    tonalElevation = 2.dp
+                val isDark = com.expense.tracker.ui.theme.AppTheme.colors.isDark
+                val navBg = if (isDark) Color(0xF2181B1A) else Color(0xF5FFFDF9)
+                val navBorder = if (isDark) Color(0xFF262A28) else Color(0xFFECE8DF)
+                val indicatorColor = if (isDark) Color(0xFF244745) else Color(0xFFD8ECEA)
+                val selectedItemColor = com.expense.tracker.ui.theme.AppTheme.colors.primary
+                val unselectedColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
+
+                Surface(
+                    color = navBg,
+                    border = BorderStroke(1.dp, navBorder)
                 ) {
-                    bottomNavItems.forEach { screen ->
-                        val isSelected = currentRoute == screen.route
-                        NavigationBarItem(
-                            icon = {
-                                screen.icon?.let { icon ->
-                                    Icon(
-                                        icon,
-                                        contentDescription = screen.title,
-                                        tint = if (isSelected) com.expense.tracker.ui.theme.AppTheme.colors.primary else com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
-                                    )
-                                }
-                            },
-                            label = {
-                                Text(
-                                    screen.title,
-                                    color = if (isSelected) com.expense.tracker.ui.theme.AppTheme.colors.primary else com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
-                                    fontFamily = com.expense.tracker.ui.theme.Inter,
-                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Medium,
-                                    fontSize = 11.sp
-                                )
-                            },
-                            selected = isSelected,
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = com.expense.tracker.ui.theme.AppTheme.colors.primary.copy(alpha = 0.12f),
-                                selectedIconColor = com.expense.tracker.ui.theme.AppTheme.colors.primary,
-                                unselectedIconColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
-                                selectedTextColor = com.expense.tracker.ui.theme.AppTheme.colors.primary,
-                                unselectedTextColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
-                            ),
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        contentColor = unselectedColor,
+                        tonalElevation = 0.dp
+                    ) {
+                        bottomNavItems.forEach { screen ->
+                            val isSelected = currentRoute == screen.route
+                            NavigationBarItem(
+                                icon = {
+                                    screen.icon?.let { icon ->
+                                        Icon(
+                                            icon,
+                                            contentDescription = screen.title,
+                                            tint = if (isSelected) selectedItemColor else unselectedColor
+                                        )
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                },
+                                label = {
+                                    Text(
+                                        screen.title,
+                                        color = if (isSelected) selectedItemColor else unselectedColor,
+                                        fontFamily = com.expense.tracker.ui.theme.Inter,
+                                        fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Medium,
+                                        fontSize = 11.sp
+                                    )
+                                },
+                                selected = isSelected,
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = indicatorColor,
+                                    selectedIconColor = selectedItemColor,
+                                    unselectedIconColor = unselectedColor,
+                                    selectedTextColor = selectedItemColor,
+                                    unselectedTextColor = unselectedColor
+                                ),
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
