@@ -1,40 +1,158 @@
 package com.expense.tracker.ui.theme
 
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// Modern Gen-Z Personal Finance Palette
-val BrandBackground = Color(0xFFF6F7FB)        // Soft, comfortable off-white background
-val SurfacePrimary = Color(0xFFFFFFFF)         // Clean card / surface white
-val SurfaceSecondary = Color(0xFFF0F2F7)       // Soft secondary surface / container
-val SurfaceBorder = Color(0xFFE5E7EB)          // Subtle card border
+// ==========================================
+// 1. LIGHT PALETTE - Warm Fintech Identity
+// ==========================================
+val DeepTeal = Color(0xFF167C80)              // Primary brand color
+val WarmOffWhite = Color(0xFFF7F5F0)          // Main background
+val WarmWhite = Color(0xFFFFFDF9)             // Card / surface
+val Charcoal = Color(0xFF202322)              // Primary text
+val MutedWarmGray = Color(0xFF747773)         // Secondary text
+val TextMutedLight = Color(0xFF9EA19D)        // Tertiary / hint text
 
-val TextPrimary = Color(0xFF17181C)            // High-contrast primary text
-val TextSecondary = Color(0xFF747783)          // Muted subtitle & caption text
-val TextMuted = Color(0xFFA0A3AF)              // Subtle metadata text
+// Functional & Semantic Accents
+val IncomeGreen = Color(0xFF35A875)           // Income / positive
+val ExpenseCoral = Color(0xFFE56B61)          // Expense / negative
+val WarmAmber = Color(0xFFE8A83E)             // Savings / accent
+val SoftSky = Color(0xFF6FA8C9)               // UPI / sky accent
+val SoftMint = Color(0xFFBFE4D0)              // Cash / mint accent
 
-// Colorful Brand & Semantic Accents
-val BrandViolet = Color(0xFF6C63FF)            // Primary brand / Indigo / Selected nav
-val SkyBlue = Color(0xFF4DA3FF)                // Secondary accent / UPI
-val FreshGreen = Color(0xFF35B875)             // Positive / Income / Cash
-val CoralRed = Color(0xFFF06A5F)               // Expense / Outgoing
-val WarmAmber = Color(0xFFF4B740)              // Savings / Warm Gold
-val SoftPink = Color(0xFFE98BB5)               // Optional supporting accent
+// Soft Pastel Backgrounds (Light)
+val SoftCoralBg = Color(0xFFF8D9D4)
+val SoftAmberBg = Color(0xFFF8E8C7)
+val SoftTealBg = Color(0xFFD8ECEA)
+val SoftSkyBg = Color(0xFFE5F1F8)
+val SoftMintBg = Color(0xFFE8F6EE)
 
-// Wallet-specific soft tint backgrounds
-val UpiTint = Color(0xFFEEF5FF)                // Subtle blue tint for UPI
-val CashTint = Color(0xFFEBF8F1)               // Subtle green tint for Cash
-val SavingsTint = Color(0xFFFFF7E6)            // Subtle amber tint for Savings
+// Surface & Dividers (Light)
+val SurfaceBorderLight = Color(0xFFEAE7E0)
+val SurfaceSecondaryLight = Color(0xFFEFECE5)
 
-// Backward Compatibility Aliases for screens awaiting subsequent approval passes
-val LedgerInk = Color(0xFF12181A)
-val LedgerPaper = Color(0xFF1C2422)
-val LedgerPaperVariant = Color(0xFF242E2B)
-val LedgerDivider = Color(0xFF2A3532)
-val RupeeGold = Color(0xFFC9A227)
-val CurrencyGreen = Color(0xFF3F7A56)
-val StampIndigo = Color(0xFF3D4E8C)
-val SealRed = Color(0xFFB5502D)
-val PrimaryText = Color(0xFFEDEAE4)
-val SecondaryText = Color(0xFF9CA39F)
-val MutedText = Color(0xFF6B726E)
+// ==========================================
+// 2. DARK PALETTE - Dedicated Warm Dark
+// ==========================================
+val DarkBackground = Color(0xFF151716)
+val DarkSurface = Color(0xFF202321)
+val DarkElevatedSurface = Color(0xFF292C2A)
+val DarkPrimaryText = Color(0xFFF4F2EA)
+val DarkSecondaryText = Color(0xFFA7AAA5)
+val DarkPrimaryBrand = Color(0xFF58B9B7)
+val DarkIncome = Color(0xFF55C28A)
+val DarkExpense = Color(0xFFF08076)
+val DarkAmber = Color(0xFFE8B65B)
 
+// Soft Accents & Backgrounds (Dark)
+val DarkSoftTeal = Color(0xFF244745)
+val DarkSoftGreen = Color(0xFF253F33)
+val DarkSoftCoral = Color(0xFF482B29)
+val DarkSoftSky = Color(0xFF213B4D)
+val DarkSoftAmber = Color(0xFF473722)
+val DarkBorder = Color(0xFF2F3230)
+
+// ==========================================
+// 3. UNIFIED DESIGN SYSTEM SEMANTIC TOKENS
+// ==========================================
+data class AppColors(
+    val primary: Color,
+    val background: Color,
+    val surface: Color,
+    val surfaceElevated: Color,
+    val surfaceSecondary: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textMuted: Color,
+    val border: Color,
+    val income: Color,
+    val expense: Color,
+    val amber: Color,
+    val sky: Color,
+    val mint: Color,
+    val softTealBg: Color,
+    val softGreenBg: Color,
+    val softAmberBg: Color,
+    val softCoralBg: Color,
+    val isDark: Boolean
+)
+
+val LightAppColors = AppColors(
+    primary = DeepTeal,
+    background = WarmOffWhite,
+    surface = WarmWhite,
+    surfaceElevated = Color.White,
+    surfaceSecondary = SurfaceSecondaryLight,
+    textPrimary = Charcoal,
+    textSecondary = MutedWarmGray,
+    textMuted = TextMutedLight,
+    border = SurfaceBorderLight,
+    income = IncomeGreen,
+    expense = ExpenseCoral,
+    amber = WarmAmber,
+    sky = SoftSky,
+    mint = SoftMint,
+    softTealBg = SoftTealBg,
+    softGreenBg = SoftMintBg,
+    softAmberBg = SoftAmberBg,
+    softCoralBg = SoftCoralBg,
+    isDark = false
+)
+
+val DarkAppColors = AppColors(
+    primary = DarkPrimaryBrand,
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceElevated = DarkElevatedSurface,
+    surfaceSecondary = DarkElevatedSurface,
+    textPrimary = DarkPrimaryText,
+    textSecondary = DarkSecondaryText,
+    textMuted = Color(0xFF7E827D),
+    border = DarkBorder,
+    income = DarkIncome,
+    expense = DarkExpense,
+    amber = DarkAmber,
+    sky = Color(0xFF86BCD9),
+    mint = Color(0xFF8CD4B0),
+    softTealBg = DarkSoftTeal,
+    softGreenBg = DarkSoftGreen,
+    softAmberBg = DarkSoftAmber,
+    softCoralBg = DarkSoftCoral,
+    isDark = true
+)
+
+val LocalAppColors = staticCompositionLocalOf { LightAppColors }
+
+// ==========================================
+// 4. BACKWARD COMPATIBILITY ALIASES
+// ==========================================
+val BrandBackground get() = WarmOffWhite
+val SurfacePrimary get() = WarmWhite
+val SurfaceSecondary get() = SurfaceSecondaryLight
+val SurfaceBorder get() = SurfaceBorderLight
+
+val TextPrimary get() = Charcoal
+val TextSecondary get() = MutedWarmGray
+val TextMuted get() = TextMutedLight
+
+val BrandViolet get() = DeepTeal
+val SkyBlue get() = SoftSky
+val FreshGreen get() = IncomeGreen
+val CoralRed get() = ExpenseCoral
+val SoftPink = Color(0xFFD6778D)
+
+val UpiTint get() = SoftTealBg
+val CashTint get() = SoftMintBg
+val SavingsTint get() = SoftAmberBg
+
+val LedgerInk get() = Charcoal
+val LedgerPaper get() = WarmWhite
+val LedgerPaperVariant get() = SurfaceSecondaryLight
+val LedgerDivider get() = SurfaceBorderLight
+val RupeeGold get() = DeepTeal
+val CurrencyGreen get() = IncomeGreen
+val StampIndigo get() = DeepTeal
+val SealRed get() = ExpenseCoral
+val PrimaryText get() = Charcoal
+val SecondaryText get() = MutedWarmGray
+val MutedText get() = TextMutedLight

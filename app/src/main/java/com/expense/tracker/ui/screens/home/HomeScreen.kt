@@ -32,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -81,16 +80,31 @@ fun HomeScreen(
         SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date())
     }
 
+    val colors = AppTheme.colors
+
     Scaffold(
-        containerColor = BrandBackground,
+        containerColor = colors.background,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNavigateToAddTransaction,
-                containerColor = BrandViolet,
-                contentColor = Color.White,
+                containerColor = colors.primary,
+                contentColor = if (colors.isDark) Color(0xFF0F2625) else Color.White,
                 shape = RoundedCornerShape(14.dp),
-                icon = { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) },
-                text = { Text("Add Entry", fontWeight = FontWeight.Bold, fontFamily = IbmPlexSans) }
+                icon = {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        tint = if (colors.isDark) Color(0xFF0F2625) else Color.White
+                    )
+                },
+                text = {
+                    Text(
+                        "Add Entry",
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = Manrope,
+                        fontSize = 14.sp
+                    )
+                }
             )
         }
     ) { padding ->
@@ -101,9 +115,9 @@ fun HomeScreen(
                 .padding(horizontal = 18.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // 1. TOP HEADER (Friendly greeting + date + subtle settings action)
+            // 1. TOP HEADER (Friendly greeting + date + settings action)
             item {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -113,26 +127,26 @@ fun HomeScreen(
                         Text(
                             text = greeting,
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontFamily = SpaceGrotesk,
-                                fontWeight = FontWeight.Bold,
+                                fontFamily = Manrope,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 22.sp
                             ),
-                            color = TextPrimary
+                            color = colors.textPrimary
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = todayDateFormatted,
                             style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = IbmPlexSans,
+                                fontFamily = Inter,
                                 fontSize = 12.sp
                             ),
-                            color = TextSecondary
+                            color = colors.textSecondary
                         )
                     }
 
                     Surface(
                         shape = CircleShape,
-                        color = SurfaceSecondary,
+                        color = colors.surfaceSecondary,
                         modifier = Modifier.size(40.dp)
                     ) {
                         IconButton(
@@ -142,7 +156,7 @@ fun HomeScreen(
                             Icon(
                                 imageVector = Icons.Default.Settings,
                                 contentDescription = "Settings",
-                                tint = TextSecondary,
+                                tint = colors.textSecondary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -150,137 +164,125 @@ fun HomeScreen(
                 }
             }
 
-            // 2. TOTAL BALANCE HERO CARD (Soft gradient, large Space Grotesk typography)
+            // 2. TOTAL BALANCE HERO CARD (Warm surface, Deep Teal accent, Space Grotesk)
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    color = SurfacePrimary,
-                    border = BorderStroke(1.dp, SurfaceBorder)
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.border)
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(
-                                        Color(0xFFFFFFFF),
-                                        Color(0xFFF7F9FD)
-                                    )
-                                )
-                            )
-                            .padding(20.dp)
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        Column(
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.Start
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Text(
+                                text = "Total balance",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 13.sp
+                                ),
+                                color = colors.textSecondary
+                            )
+
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = colors.primary.copy(alpha = 0.12f),
+                                border = BorderStroke(0.6.dp, colors.primary.copy(alpha = 0.25f))
                             ) {
                                 Text(
-                                    text = "Total balance",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontFamily = IbmPlexSans,
+                                    text = "Across ${wallets.size} wallets",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = Inter,
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 13.sp
+                                        fontSize = 11.sp
                                     ),
-                                    color = TextSecondary
+                                    color = colors.primary,
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
                                 )
+                            }
+                        }
 
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = BrandViolet.copy(alpha = 0.08f),
-                                    border = BorderStroke(0.5.dp, BrandViolet.copy(alpha = 0.2f))
-                                ) {
-                                    Text(
-                                        text = "Across ${wallets.size} wallets",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontFamily = IbmPlexSans,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 11.sp
-                                        ),
-                                        color = BrandViolet,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        AnimatedRupeeAmount(
+                            targetAmount = totalNetBalance,
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontFamily = SpaceGrotesk,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 36.sp,
+                                letterSpacing = (-0.5).sp
+                            ),
+                            color = colors.textPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        HorizontalDivider(color = colors.border, thickness = 0.8.dp)
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onNavigateToSummary() },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(colors.income, shape = CircleShape)
+                                )
+                                Text(
+                                    text = "Active & Encrypted",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = Inter,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.textSecondary
+                                )
                             }
 
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            AnimatedRupeeAmount(
-                                targetAmount = totalNetBalance,
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontFamily = SpaceGrotesk,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 36.sp,
-                                    letterSpacing = (-0.5).sp
-                                ),
-                                color = TextPrimary
-                            )
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            HorizontalDivider(color = SurfaceBorder, thickness = 0.8.dp)
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onNavigateToSummary() },
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(7.dp)
-                                            .background(FreshGreen, shape = CircleShape)
-                                    )
-                                    Text(
-                                        text = "Active & Encrypted",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = IbmPlexSans,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 12.sp
-                                        ),
-                                        color = TextSecondary
-                                    )
-                                }
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = "Spending overview",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontFamily = IbmPlexSans,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 12.sp
-                                        ),
-                                        color = BrandViolet
-                                    )
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                        contentDescription = null,
-                                        tint = BrandViolet,
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                }
+                                Text(
+                                    text = "Spending overview",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = Inter,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.primary
+                                )
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = colors.primary,
+                                    modifier = Modifier.size(13.dp)
+                                )
                             }
                         }
                     }
                 }
             }
 
-            // 3. WALLET SECTION ("YOUR MONEY") - Distinct soft-tinted cards
+            // 3. WALLET SECTION ("YOUR MONEY") - Horizontal carousel with intentional 3rd card peek
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
@@ -291,66 +293,41 @@ fun HomeScreen(
                         Text(
                             text = "Your money",
                             style = MaterialTheme.typography.titleMedium.copy(
-                                fontFamily = SpaceGrotesk,
-                                fontWeight = FontWeight.Bold,
+                                fontFamily = Manrope,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 18.sp
                             ),
-                            color = TextPrimary
+                            color = colors.textPrimary
                         )
 
                         Text(
-                            text = "${wallets.size} accounts",
+                            text = "${wallets.size} wallets",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = IbmPlexSans,
+                                fontFamily = Inter,
                                 fontSize = 12.sp
                             ),
-                            color = TextSecondary
+                            color = colors.textSecondary
                         )
                     }
 
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(end = 4.dp)
+                        contentPadding = PaddingValues(end = 8.dp)
                     ) {
                         items(wallets) { wallet ->
-                            val (tintBg, borderColor, accentColor, walletBadge, walletIcon) = when (wallet.name.lowercase()) {
-                                "upi" -> WalletIdentity(
-                                    tint = UpiTint,
-                                    border = Color(0xFFD3E4FE),
-                                    accent = SkyBlue,
-                                    badge = "Digital",
-                                    icon = Icons.Default.AccountBalanceWallet
-                                )
-                                "cash" -> WalletIdentity(
-                                    tint = CashTint,
-                                    border = Color(0xFFC7EED8),
-                                    accent = FreshGreen,
-                                    badge = "Physical",
-                                    icon = Icons.Default.Payments
-                                )
-                                "savings" -> WalletIdentity(
-                                    tint = SavingsTint,
-                                    border = Color(0xFFFDE7B8),
-                                    accent = WarmAmber,
-                                    badge = "Reserve",
-                                    icon = Icons.Default.Savings
-                                )
-                                else -> WalletIdentity(
-                                    tint = SurfaceSecondary,
-                                    border = SurfaceBorder,
-                                    accent = BrandViolet,
-                                    badge = if (wallet.type == WalletType.DIGITAL) "Digital" else "Cash",
-                                    icon = Icons.Default.AccountBalanceWallet
-                                )
-                            }
+                            val identity = resolveWalletIdentity(
+                                name = wallet.name,
+                                type = wallet.type,
+                                colors = colors
+                            )
 
                             Surface(
                                 modifier = Modifier
                                     .width(148.dp)
                                     .clickable { onNavigateToWalletDetail(wallet.id) },
                                 shape = RoundedCornerShape(16.dp),
-                                color = tintBg,
-                                border = BorderStroke(1.dp, borderColor)
+                                color = identity.tint,
+                                border = BorderStroke(1.dp, identity.border)
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -365,7 +342,7 @@ fun HomeScreen(
                                     ) {
                                         Surface(
                                             shape = CircleShape,
-                                            color = Color.White,
+                                            color = if (colors.isDark) colors.surfaceElevated else Color.White,
                                             modifier = Modifier.size(34.dp)
                                         ) {
                                             Box(
@@ -373,9 +350,9 @@ fun HomeScreen(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
-                                                    imageVector = walletIcon,
+                                                    imageVector = identity.icon,
                                                     contentDescription = wallet.name,
-                                                    tint = accentColor,
+                                                    tint = identity.accent,
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                             }
@@ -383,16 +360,16 @@ fun HomeScreen(
 
                                         Surface(
                                             shape = RoundedCornerShape(8.dp),
-                                            color = Color.White.copy(alpha = 0.85f)
+                                            color = if (colors.isDark) colors.surface.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.85f)
                                         ) {
                                             Text(
-                                                text = walletBadge,
+                                                text = identity.badge,
                                                 style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontFamily = IbmPlexSans,
+                                                    fontFamily = Inter,
                                                     fontWeight = FontWeight.SemiBold,
                                                     fontSize = 10.sp
                                                 ),
-                                                color = accentColor,
+                                                color = identity.accent,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }
@@ -404,11 +381,13 @@ fun HomeScreen(
                                         Text(
                                             text = wallet.name,
                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontFamily = IbmPlexSans,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 15.sp
+                                                fontFamily = Inter,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 14.sp
                                             ),
-                                            color = TextPrimary
+                                            color = colors.textPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
 
                                         Spacer(modifier = Modifier.height(2.dp))
@@ -417,10 +396,10 @@ fun HomeScreen(
                                             text = "₹${"%.2f".format(wallet.currentBalance)}",
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 fontFamily = SpaceGrotesk,
-                                                fontWeight = FontWeight.Bold,
+                                                fontWeight = FontWeight.SemiBold,
                                                 fontSize = 16.sp
                                             ),
-                                            color = TextPrimary
+                                            color = colors.textPrimary
                                         )
                                     }
                                 }
@@ -436,11 +415,11 @@ fun HomeScreen(
                     Text(
                         text = "This week",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = SpaceGrotesk,
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 18.sp
                         ),
-                        color = TextPrimary
+                        color = colors.textPrimary
                     )
 
                     val weeklyTotal = recentExpenses.sumOf { it.amount }
@@ -450,8 +429,8 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .clickable { onNavigateToSummary() },
                         shape = RoundedCornerShape(16.dp),
-                        color = SurfacePrimary,
-                        border = BorderStroke(1.dp, SurfaceBorder)
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Column(
                             modifier = Modifier
@@ -468,26 +447,26 @@ fun HomeScreen(
                                     Text(
                                         text = "Spent past 7 days",
                                         style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = IbmPlexSans,
+                                            fontFamily = Inter,
                                             fontSize = 12.sp
                                         ),
-                                        color = TextSecondary
+                                        color = colors.textSecondary
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "₹${"%.2f".format(weeklyTotal)}",
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontFamily = SpaceGrotesk,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             fontSize = 22.sp
                                         ),
-                                        color = if (weeklyTotal > 0.0) CoralRed else TextPrimary
+                                        color = if (weeklyTotal > 0.0) colors.expense else colors.textPrimary
                                     )
                                 }
 
                                 Surface(
                                     shape = CircleShape,
-                                    color = SurfaceSecondary,
+                                    color = colors.surfaceSecondary,
                                     modifier = Modifier.size(32.dp)
                                 ) {
                                     Box(
@@ -497,7 +476,7 @@ fun HomeScreen(
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                             contentDescription = "Summary",
-                                            tint = TextSecondary,
+                                            tint = colors.textSecondary,
                                             modifier = Modifier.size(15.dp)
                                         )
                                     }
@@ -507,7 +486,7 @@ fun HomeScreen(
                             if (recentExpenses.isEmpty()) {
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
-                                    color = SurfaceSecondary.copy(alpha = 0.6f),
+                                    color = colors.surfaceSecondary.copy(alpha = 0.6f),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(
@@ -525,19 +504,19 @@ fun HomeScreen(
                                             Text(
                                                 text = "No spending yet ✨",
                                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontFamily = IbmPlexSans,
-                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontFamily = Inter,
+                                                    fontWeight = FontWeight.Medium,
                                                     fontSize = 13.sp
                                                 ),
-                                                color = TextPrimary
+                                                color = colors.textPrimary
                                             )
                                             Text(
                                                 text = "You're having a quiet week.",
                                                 style = MaterialTheme.typography.bodySmall.copy(
-                                                    fontFamily = IbmPlexSans,
+                                                    fontFamily = Inter,
                                                     fontSize = 12.sp
                                                 ),
-                                                color = TextSecondary
+                                                color = colors.textSecondary
                                             )
                                         }
                                     }
@@ -591,19 +570,19 @@ fun HomeScreen(
                                                     .height((38 * heightFraction).dp)
                                                     .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
                                                     .background(
-                                                        if (bucket.isToday) BrandViolet
-                                                        else if (bucket.amount > 0.0) BrandViolet.copy(alpha = 0.28f)
-                                                        else SurfaceSecondary
+                                                        if (bucket.isToday) colors.primary
+                                                        else if (bucket.amount > 0.0) colors.primary.copy(alpha = 0.35f)
+                                                        else colors.surfaceSecondary
                                                     )
                                             )
                                             Text(
                                                 text = bucket.dayName,
                                                 style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontFamily = IbmPlexSans,
+                                                    fontFamily = Inter,
                                                     fontSize = 10.sp,
-                                                    fontWeight = if (bucket.isToday) FontWeight.Bold else FontWeight.Normal
+                                                    fontWeight = if (bucket.isToday) FontWeight.SemiBold else FontWeight.Normal
                                                 ),
-                                                color = if (bucket.isToday) BrandViolet else TextSecondary
+                                                color = if (bucket.isToday) colors.primary else colors.textSecondary
                                             )
                                         }
                                     }
@@ -614,7 +593,7 @@ fun HomeScreen(
                 }
             }
 
-            // 5. RECENT ACTIVITY (Modern transaction rows with clean category icons)
+            // 5. RECENT ACTIVITY (Clean transaction rows with modern category icons)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -624,21 +603,21 @@ fun HomeScreen(
                     Text(
                         text = "Recent activity",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = SpaceGrotesk,
-                            fontWeight = FontWeight.Bold,
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 18.sp
                         ),
-                        color = TextPrimary
+                        color = colors.textPrimary
                     )
 
                     if (recentTransactions.isNotEmpty()) {
                         Text(
                             text = "Latest",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = IbmPlexSans,
+                                fontFamily = Inter,
                                 fontSize = 12.sp
                             ),
-                            color = TextSecondary
+                            color = colors.textSecondary
                         )
                     }
                 }
@@ -649,8 +628,8 @@ fun HomeScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = SurfacePrimary,
-                        border = BorderStroke(1.dp, SurfaceBorder)
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Box(
                             modifier = Modifier
@@ -662,20 +641,20 @@ fun HomeScreen(
                                 Text(
                                     text = "No activity yet",
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontFamily = IbmPlexSans,
-                                        fontWeight = FontWeight.SemiBold,
+                                        fontFamily = Inter,
+                                        fontWeight = FontWeight.Medium,
                                         fontSize = 14.sp
                                     ),
-                                    color = TextPrimary
+                                    color = colors.textPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Tap + Add Entry below to track an expense",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        fontFamily = IbmPlexSans,
+                                        fontFamily = Inter,
                                         fontSize = 12.sp
                                     ),
-                                    color = TextSecondary
+                                    color = colors.textSecondary
                                 )
                             }
                         }
@@ -683,7 +662,6 @@ fun HomeScreen(
                 }
             } else {
                 item {
-                    // Prioritize user transactions over system Opening Balance audit entries
                     val normalTransactions = recentTransactions.filter { it.type != TransactionType.OPENING_BALANCE }
                     val openingTransactions = recentTransactions.filter { it.type == TransactionType.OPENING_BALANCE }
                     val displayedList = if (normalTransactions.isNotEmpty()) {
@@ -695,8 +673,8 @@ fun HomeScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = SurfacePrimary,
-                        border = BorderStroke(1.dp, SurfaceBorder)
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Column {
                             displayedList.forEachIndexed { index, tx ->
@@ -710,9 +688,9 @@ fun HomeScreen(
                                 val isTransfer = isTransferOut || isTransferIn
 
                                 val amountColor = when {
-                                    isExpense || isTransferOut -> CoralRed
-                                    isIncome || isTransferIn -> FreshGreen
-                                    else -> TextSecondary
+                                    isExpense || isTransferOut -> colors.expense
+                                    isIncome || isTransferIn -> colors.income
+                                    else -> colors.textSecondary
                                 }
 
                                 val prefix = when {
@@ -730,9 +708,10 @@ fun HomeScreen(
                                 val timeString = formatRelativeDate(tx.timestamp)
                                 val subtitleText = if (wallet != null) "${wallet.name} · $timeString" else timeString
 
-                                val (categoryIcon, iconTint, iconBg) = resolveCategoryVisual(
+                                val visual = resolveCategoryVisual(
                                     categoryName = category?.name,
-                                    type = tx.type
+                                    type = tx.type,
+                                    colors = colors
                                 )
 
                                 Row(
@@ -748,10 +727,9 @@ fun HomeScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Category icon in soft pastel rounded container
                                         Surface(
                                             shape = RoundedCornerShape(12.dp),
-                                            color = iconBg,
+                                            color = visual.bg,
                                             modifier = Modifier.size(42.dp)
                                         ) {
                                             Box(
@@ -759,9 +737,9 @@ fun HomeScreen(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
-                                                    imageVector = categoryIcon,
+                                                    imageVector = visual.icon,
                                                     contentDescription = titleText,
-                                                    tint = iconTint,
+                                                    tint = visual.tint,
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -771,11 +749,11 @@ fun HomeScreen(
                                             Text(
                                                 text = titleText,
                                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontFamily = IbmPlexSans,
-                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontFamily = Inter,
+                                                    fontWeight = FontWeight.Medium,
                                                     fontSize = 14.sp
                                                 ),
-                                                color = if (isOpening) TextSecondary else TextPrimary,
+                                                color = if (isOpening) colors.textSecondary else colors.textPrimary,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
@@ -783,20 +761,20 @@ fun HomeScreen(
                                             Text(
                                                 text = subtitleText,
                                                 style = MaterialTheme.typography.bodySmall.copy(
-                                                    fontFamily = IbmPlexSans,
+                                                    fontFamily = Inter,
                                                     fontSize = 12.sp
                                                 ),
-                                                color = TextSecondary
+                                                color = colors.textSecondary
                                             )
 
                                             tx.note?.takeIf { it.isNotBlank() }?.let { note ->
                                                 Text(
                                                     text = note,
                                                     style = MaterialTheme.typography.bodySmall.copy(
-                                                        fontFamily = IbmPlexSans,
+                                                        fontFamily = Inter,
                                                         fontSize = 11.sp
                                                     ),
-                                                    color = TextMuted,
+                                                    color = colors.textMuted,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -804,12 +782,11 @@ fun HomeScreen(
                                         }
                                     }
 
-                                    // Right-aligned tabular amount in Space Grotesk Bold
                                     Text(
                                         text = "$prefix${"%.2f".format(tx.amount)}",
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontFamily = SpaceGrotesk,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             fontSize = 16.sp
                                         ),
                                         color = amountColor
@@ -818,7 +795,7 @@ fun HomeScreen(
 
                                 if (index < displayedList.size - 1) {
                                     HorizontalDivider(
-                                        color = Color(0xFFF2F4F8),
+                                        color = colors.border.copy(alpha = 0.5f),
                                         thickness = 0.8.dp,
                                         modifier = Modifier.padding(horizontal = 16.dp)
                                     )
@@ -829,7 +806,7 @@ fun HomeScreen(
                 }
             }
 
-            // Bottom spacer so FAB doesn't obscure recent activity
+            // Bottom spacer so FAB doesn't obscure content
             item {
                 Spacer(modifier = Modifier.height(88.dp))
             }
@@ -845,6 +822,72 @@ private data class WalletIdentity(
     val icon: ImageVector
 )
 
+private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppColors): WalletIdentity {
+    return if (colors.isDark) {
+        when (name.lowercase()) {
+            "upi" -> WalletIdentity(
+                tint = colors.softTealBg,
+                border = Color(0xFF234B49),
+                accent = colors.primary,
+                badge = "Digital",
+                icon = Icons.Default.AccountBalanceWallet
+            )
+            "cash" -> WalletIdentity(
+                tint = colors.softGreenBg,
+                border = Color(0xFF234735),
+                accent = colors.income,
+                badge = "Physical",
+                icon = Icons.Default.Payments
+            )
+            "savings" -> WalletIdentity(
+                tint = colors.softAmberBg,
+                border = Color(0xFF4C3C24),
+                accent = colors.amber,
+                badge = "Reserve",
+                icon = Icons.Default.Savings
+            )
+            else -> WalletIdentity(
+                tint = colors.surfaceSecondary,
+                border = colors.border,
+                accent = colors.primary,
+                badge = if (type == WalletType.DIGITAL) "Digital" else "Cash",
+                icon = Icons.Default.AccountBalanceWallet
+            )
+        }
+    } else {
+        when (name.lowercase()) {
+            "upi" -> WalletIdentity(
+                tint = SoftTealBg,
+                border = Color(0xFFC7E2DF),
+                accent = DeepTeal,
+                badge = "Digital",
+                icon = Icons.Default.AccountBalanceWallet
+            )
+            "cash" -> WalletIdentity(
+                tint = SoftMintBg,
+                border = Color(0xFFC3E8D3),
+                accent = IncomeGreen,
+                badge = "Physical",
+                icon = Icons.Default.Payments
+            )
+            "savings" -> WalletIdentity(
+                tint = SoftAmberBg,
+                border = Color(0xFFF3DEB8),
+                accent = WarmAmber,
+                badge = "Reserve",
+                icon = Icons.Default.Savings
+            )
+            else -> WalletIdentity(
+                tint = SurfaceSecondaryLight,
+                border = SurfaceBorderLight,
+                accent = DeepTeal,
+                badge = if (type == WalletType.DIGITAL) "Digital" else "Cash",
+                icon = Icons.Default.AccountBalanceWallet
+            )
+        }
+    }
+}
+
 private data class DaySpend(
     val dayName: String,
     val amount: Double,
@@ -857,63 +900,63 @@ private data class CategoryVisual(
     val bg: Color
 )
 
-private fun resolveCategoryVisual(categoryName: String?, type: TransactionType): CategoryVisual {
+private fun resolveCategoryVisual(categoryName: String?, type: TransactionType, colors: AppColors): CategoryVisual {
     return when (type) {
         TransactionType.TRANSFER_OUT, TransactionType.TRANSFER_IN -> {
             CategoryVisual(
                 icon = Icons.Default.SwapHoriz,
-                tint = BrandViolet,
-                bg = BrandViolet.copy(alpha = 0.12f)
+                tint = colors.primary,
+                bg = colors.primary.copy(alpha = 0.12f)
             )
         }
         TransactionType.OPENING_BALANCE -> {
             CategoryVisual(
                 icon = Icons.Default.AccountBalance,
-                tint = TextSecondary,
-                bg = SurfaceSecondary
+                tint = colors.textSecondary,
+                bg = colors.surfaceSecondary
             )
         }
         else -> {
             when (categoryName?.lowercase()) {
                 "food", "dining" -> CategoryVisual(
                     icon = Icons.Default.Restaurant,
-                    tint = CoralRed,
-                    bg = CoralRed.copy(alpha = 0.12f)
+                    tint = colors.expense,
+                    bg = colors.softCoralBg
                 )
                 "travel", "transport" -> CategoryVisual(
                     icon = Icons.Default.DirectionsCar,
-                    tint = SkyBlue,
-                    bg = SkyBlue.copy(alpha = 0.12f)
+                    tint = colors.sky,
+                    bg = colors.sky.copy(alpha = 0.15f)
                 )
                 "bills", "utilities" -> CategoryVisual(
                     icon = Icons.AutoMirrored.Filled.ReceiptLong,
-                    tint = WarmAmber,
-                    bg = WarmAmber.copy(alpha = 0.12f)
+                    tint = colors.amber,
+                    bg = colors.softAmberBg
                 )
                 "shopping" -> CategoryVisual(
                     icon = Icons.Default.ShoppingBag,
-                    tint = SoftPink,
-                    bg = SoftPink.copy(alpha = 0.12f)
+                    tint = Color(0xFFD6778D),
+                    bg = Color(0xFFD6778D).copy(alpha = 0.15f)
                 )
                 "entertainment" -> CategoryVisual(
                     icon = Icons.Default.Movie,
-                    tint = BrandViolet,
-                    bg = BrandViolet.copy(alpha = 0.12f)
+                    tint = colors.primary,
+                    bg = colors.softTealBg
                 )
                 "health", "medical" -> CategoryVisual(
                     icon = Icons.Default.MedicalServices,
-                    tint = CoralRed,
-                    bg = CoralRed.copy(alpha = 0.12f)
+                    tint = colors.expense,
+                    bg = colors.softCoralBg
                 )
                 "groceries" -> CategoryVisual(
                     icon = Icons.Default.ShoppingCart,
-                    tint = FreshGreen,
-                    bg = FreshGreen.copy(alpha = 0.12f)
+                    tint = colors.income,
+                    bg = colors.softGreenBg
                 )
                 else -> CategoryVisual(
                     icon = Icons.Default.Category,
-                    tint = SkyBlue,
-                    bg = SkyBlue.copy(alpha = 0.12f)
+                    tint = colors.sky,
+                    bg = colors.sky.copy(alpha = 0.15f)
                 )
             }
         }

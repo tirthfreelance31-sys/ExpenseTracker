@@ -4,12 +4,24 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,21 +49,25 @@ fun HistoryScreen(
     val totalDebits = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
     val totalCredits = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
 
+    val colors = AppTheme.colors
+
     Scaffold(
-        containerColor = LedgerInk,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "TRANSACTION AUDIT LOG",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = RupeeGold,
-                        letterSpacing = 1.2.sp
+                        text = "History",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp
+                        ),
+                        color = colors.textPrimary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LedgerInk
+                    containerColor = colors.background
                 )
             )
         }
@@ -60,20 +76,22 @@ fun HistoryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Audit Overview Summary Bar
+            // Summary Inflow & Outflow Overview Card
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    color = LedgerPaper,
-                    border = BorderStroke(1.dp, LedgerDivider)
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.border)
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -81,22 +99,26 @@ fun HistoryScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "CHRONOLOGICAL REGISTER",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = SecondaryText,
-                                letterSpacing = 1.sp
+                                text = "Overview",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.5.sp
+                                ),
+                                color = colors.textSecondary
                             )
                             Text(
-                                text = "${transactions.size} ENTRIES",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText,
-                                letterSpacing = 0.5.sp
+                                text = "${transactions.size} entries",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = Inter,
+                                    fontSize = 12.sp
+                                ),
+                                color = colors.textSecondary
                             )
                         }
 
-                        HorizontalDivider(color = LedgerDivider, thickness = 0.5.dp)
+                        HorizontalDivider(color = colors.border.copy(alpha = 0.5f), thickness = 0.8.dp)
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -104,29 +126,43 @@ fun HistoryScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "Total Inflow (CR)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = SecondaryText
+                                    text = "Total Inflow",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = Inter,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.textSecondary
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "+₹${"%.2f".format(totalCredits)}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = CurrencyGreen
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = SpaceGrotesk,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 18.sp
+                                    ),
+                                    color = colors.income
                                 )
                             }
 
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "Total Outflow (DR)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = SecondaryText
+                                    text = "Total Outflow",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = Inter,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.textSecondary
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "-₹${"%.2f".format(totalDebits)}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SealRed
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = SpaceGrotesk,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 18.sp
+                                    ),
+                                    color = colors.expense
                                 )
                             }
                         }
@@ -136,30 +172,25 @@ fun HistoryScreen(
 
             // Section Header
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                    Text(
-                        text = "LEDGER PASSBOOK ENTRIES",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText,
+                Text(
+                    text = "ALL TRANSACTIONS",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
                         letterSpacing = 1.sp
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                }
+                    ),
+                    color = colors.textSecondary
+                )
             }
 
             if (transactions.isEmpty()) {
                 item {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = LedgerPaper,
-                        shape = RoundedCornerShape(3.dp),
-                        border = BorderStroke(1.dp, LedgerDivider)
+                        color = colors.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Box(
                             modifier = Modifier
@@ -168,9 +199,12 @@ fun HistoryScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No ledger entries recorded yet",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = SecondaryText
+                                text = "No transactions recorded yet ✨",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = Inter,
+                                    fontSize = 13.sp
+                                ),
+                                color = colors.textSecondary
                             )
                         }
                     }
@@ -179,9 +213,9 @@ fun HistoryScreen(
                 item {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = LedgerPaper,
-                        shape = RoundedCornerShape(3.dp),
-                        border = BorderStroke(1.dp, LedgerDivider)
+                        color = colors.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Column {
                             transactions.forEachIndexed { index, tx ->
@@ -195,9 +229,9 @@ fun HistoryScreen(
                                 val isTransfer = isTransferOut || isTransferIn
 
                                 val amountColor = when {
-                                    isExpense || isTransferOut -> SealRed
-                                    isIncome || isTransferIn -> CurrencyGreen
-                                    else -> SecondaryText
+                                    isExpense || isTransferOut -> colors.expense
+                                    isIncome || isTransferIn -> colors.income
+                                    else -> colors.textSecondary
                                 }
 
                                 val prefix = when {
@@ -214,31 +248,57 @@ fun HistoryScreen(
 
                                 val formattedDate = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
                                     .format(Date(tx.timestamp))
-                                    .uppercase()
+
+                                val visual = resolveCategoryVisual(
+                                    categoryName = category?.name,
+                                    type = tx.type,
+                                    colors = colors
+                                )
 
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { onEditTransaction(tx.id) }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.Top,
+                                        .padding(horizontal = 16.dp, vertical = 13.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Row(
                                         modifier = Modifier.weight(1f),
-                                        verticalAlignment = Alignment.Top,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Accounting Typographic Stamp
-                                        LedgerStamp(type = tx.type, modifier = Modifier.padding(top = 1.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = visual.bg,
+                                            modifier = Modifier.size(40.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = visual.icon,
+                                                    contentDescription = titleText,
+                                                    tint = visual.tint,
+                                                    modifier = Modifier.size(19.dp)
+                                                )
+                                            }
+                                        }
 
-                                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
                                                 text = titleText,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (isOpening) SecondaryText else PrimaryText
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontFamily = Inter,
+                                                    fontWeight = FontWeight.Medium,
+                                                    fontSize = 14.sp
+                                                ),
+                                                color = if (isOpening) colors.textSecondary else colors.textPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
+
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -246,28 +306,37 @@ fun HistoryScreen(
                                                 wallet?.name?.let { wName ->
                                                     Text(
                                                         text = wName,
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = when (wName.lowercase()) {
-                                                            "upi" -> StampIndigo
-                                                            "cash" -> CurrencyGreen
-                                                            "savings" -> RupeeGold
-                                                            else -> RupeeGold
-                                                        }
+                                                        style = MaterialTheme.typography.bodySmall.copy(
+                                                            fontFamily = Inter,
+                                                            fontWeight = FontWeight.Medium,
+                                                            fontSize = 12.sp
+                                                        ),
+                                                        color = colors.primary
                                                     )
-                                                    Text(text = "·", style = MaterialTheme.typography.bodySmall, color = MutedText)
+                                                    Text(
+                                                        text = "·",
+                                                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter),
+                                                        color = colors.textSecondary
+                                                    )
                                                 }
                                                 Text(
                                                     text = formattedDate,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = if (isOpening) MutedText else SecondaryText
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontFamily = Inter,
+                                                        fontSize = 12.sp
+                                                    ),
+                                                    color = colors.textSecondary
                                                 )
                                             }
+
                                             tx.note?.takeIf { it.isNotBlank() }?.let { note ->
                                                 Text(
                                                     text = note,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MutedText,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontFamily = Inter,
+                                                        fontSize = 11.sp
+                                                    ),
+                                                    color = colors.textMuted,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -277,18 +346,20 @@ fun HistoryScreen(
 
                                     Text(
                                         text = "$prefix${"%.2f".format(tx.amount)}",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = amountColor,
-                                        modifier = Modifier.padding(top = 1.dp)
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontFamily = SpaceGrotesk,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 16.sp
+                                        ),
+                                        color = amountColor
                                     )
                                 }
 
                                 if (index < transactions.size - 1) {
                                     HorizontalDivider(
-                                        color = LedgerDivider,
-                                        thickness = 0.5.dp,
-                                        modifier = Modifier.padding(horizontal = 12.dp)
+                                        color = colors.border.copy(alpha = 0.5f),
+                                        thickness = 0.8.dp,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
                                     )
                                 }
                             }
@@ -298,37 +369,77 @@ fun HistoryScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
             }
         }
     }
 }
 
-@Composable
-private fun LedgerStamp(
-    type: TransactionType,
-    modifier: Modifier = Modifier
-) {
-    val (stampText, stampColor) = when (type) {
-        TransactionType.EXPENSE -> "DR" to SealRed
-        TransactionType.INCOME -> "CR" to CurrencyGreen
-        TransactionType.TRANSFER_OUT, TransactionType.TRANSFER_IN -> "TR" to StampIndigo
-        TransactionType.OPENING_BALANCE -> "OB" to MutedText
-    }
+private data class CategoryVisual(
+    val icon: ImageVector,
+    val tint: Color,
+    val bg: Color
+)
 
-    Surface(
-        modifier = modifier,
-        color = stampColor.copy(alpha = 0.12f),
-        shape = RoundedCornerShape(3.dp),
-        border = BorderStroke(1.dp, stampColor.copy(alpha = 0.35f))
-    ) {
-        Text(
-            text = stampText,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = stampColor,
-            letterSpacing = 0.5.sp,
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-        )
+private fun resolveCategoryVisual(categoryName: String?, type: TransactionType, colors: AppColors): CategoryVisual {
+    return when (type) {
+        TransactionType.TRANSFER_OUT, TransactionType.TRANSFER_IN -> {
+            CategoryVisual(
+                icon = Icons.Default.SwapHoriz,
+                tint = colors.primary,
+                bg = colors.primary.copy(alpha = 0.12f)
+            )
+        }
+        TransactionType.OPENING_BALANCE -> {
+            CategoryVisual(
+                icon = Icons.Default.AccountBalance,
+                tint = colors.textSecondary,
+                bg = colors.surfaceSecondary
+            )
+        }
+        else -> {
+            when (categoryName?.lowercase()) {
+                "food", "dining" -> CategoryVisual(
+                    icon = Icons.Default.Restaurant,
+                    tint = colors.expense,
+                    bg = colors.softCoralBg
+                )
+                "travel", "transport" -> CategoryVisual(
+                    icon = Icons.Default.DirectionsCar,
+                    tint = colors.sky,
+                    bg = colors.sky.copy(alpha = 0.15f)
+                )
+                "bills", "utilities" -> CategoryVisual(
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                    tint = colors.amber,
+                    bg = colors.softAmberBg
+                )
+                "shopping" -> CategoryVisual(
+                    icon = Icons.Default.ShoppingBag,
+                    tint = Color(0xFFD6778D),
+                    bg = Color(0xFFD6778D).copy(alpha = 0.15f)
+                )
+                "entertainment" -> CategoryVisual(
+                    icon = Icons.Default.Movie,
+                    tint = colors.primary,
+                    bg = colors.softTealBg
+                )
+                "health", "medical" -> CategoryVisual(
+                    icon = Icons.Default.MedicalServices,
+                    tint = colors.expense,
+                    bg = colors.softCoralBg
+                )
+                "groceries" -> CategoryVisual(
+                    icon = Icons.Default.ShoppingCart,
+                    tint = colors.income,
+                    bg = colors.softGreenBg
+                )
+                else -> CategoryVisual(
+                    icon = Icons.Default.Category,
+                    tint = colors.sky,
+                    bg = colors.sky.copy(alpha = 0.15f)
+                )
+            }
+        }
     }
 }

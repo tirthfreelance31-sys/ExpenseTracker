@@ -2,10 +2,10 @@ package com.expense.tracker.ui.screens.walletsetup
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,12 +37,11 @@ fun WalletSetupScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val colors = AppTheme.colors
 
-    // Map walletId -> input text string
     val balanceInputs = remember { mutableStateMapOf<Long, String>() }
     var isSaving by remember { mutableStateOf(false) }
 
-    // Pre-populate input fields with existing opening balances or default zero string
     LaunchedEffect(wallets) {
         wallets.forEach { wallet ->
             if (!balanceInputs.containsKey(wallet.id)) {
@@ -52,20 +52,22 @@ fun WalletSetupScreen(
     }
 
     Scaffold(
-        containerColor = LedgerInk,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "INITIAL LEDGER SETUP",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = RupeeGold,
-                        letterSpacing = 1.2.sp
+                        text = "Wallet Setup",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp
+                        ),
+                        color = colors.textPrimary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LedgerInk
+                    containerColor = colors.background
                 )
             )
         }
@@ -74,109 +76,116 @@ fun WalletSetupScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header Instructions Card
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(4.dp),
-                color = LedgerPaper,
-                border = BorderStroke(1.dp, LedgerDivider)
+                shape = RoundedCornerShape(16.dp),
+                color = colors.surface,
+                border = BorderStroke(1.dp, colors.border)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "FOLIO OPENING BALANCES",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText,
-                        letterSpacing = 1.sp
+                        text = "Set Starting Balances",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        ),
+                        color = colors.textPrimary
                     )
                     Text(
-                        text = "Specify starting funds for each account folio. This records your initial ledger audit baseline. You can adjust this anytime via account reconciliation.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = PrimaryText
+                        text = "Enter current funds for each wallet to establish your starting balance. You can edit this anytime.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = Inter,
+                            fontSize = 13.sp
+                        ),
+                        color = colors.textSecondary
                     )
                 }
             }
 
-            // Section Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                Text(
-                    text = "ACCOUNTS & FOLIOS",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = SecondaryText,
+            Text(
+                text = "YOUR WALLETS",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 11.sp,
                     letterSpacing = 1.sp
-                )
-                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-            }
+                ),
+                color = colors.textSecondary
+            )
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(wallets) { wallet ->
-                    val accentColor = when (wallet.name.lowercase()) {
-                        "upi" -> StampIndigo
-                        "cash" -> CurrencyGreen
-                        "savings" -> RupeeGold
-                        else -> RupeeGold
-                    }
-
-                    val icon = when (wallet.name.lowercase()) {
-                        "cash" -> Icons.Default.Payments
-                        "savings" -> Icons.Default.Savings
-                        else -> Icons.Default.AccountBalanceWallet
+                    val (accentColor, icon) = when (wallet.name.lowercase()) {
+                        "upi" -> Pair(colors.sky, Icons.Default.AccountBalanceWallet)
+                        "cash" -> Pair(colors.income, Icons.Default.Payments)
+                        "savings" -> Pair(colors.amber, Icons.Default.Savings)
+                        else -> Pair(colors.primary, Icons.Default.AccountBalanceWallet)
                     }
 
                     Surface(
-                        shape = RoundedCornerShape(3.dp),
-                        color = LedgerPaper,
-                        border = BorderStroke(1.dp, LedgerDivider),
+                        shape = RoundedCornerShape(16.dp),
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.border),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(3.dp)
-                                        .height(30.dp)
-                                        .background(accentColor, RoundedCornerShape(1.dp))
-                                )
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    tint = accentColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                                Surface(
+                                    shape = CircleShape,
+                                    color = accentColor.copy(alpha = 0.12f),
+                                    modifier = Modifier.size(38.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = accentColor,
+                                            modifier = Modifier.size(19.dp)
+                                        )
+                                    }
+                                }
+
                                 Column {
                                     Text(
                                         text = wallet.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PrimaryText
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = Inter,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 15.sp
+                                        ),
+                                        color = colors.textPrimary
                                     )
                                     Text(
-                                        text = if (wallet.type == WalletType.DIGITAL) "Digital Folio" else "Physical Cash",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = SecondaryText
+                                        text = if (wallet.type == WalletType.DIGITAL) "Digital Wallet" else "Cash",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = Inter,
+                                            fontSize = 12.sp
+                                        ),
+                                        color = colors.textSecondary
                                     )
                                 }
                             }
@@ -188,38 +197,33 @@ fun WalletSetupScreen(
                                         balanceInputs[wallet.id] = newValue
                                     }
                                 },
-                                label = { Text("Opening Balance", style = MaterialTheme.typography.bodySmall) },
+                                label = { Text("Starting Balance", style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter)) },
                                 prefix = {
                                     Text(
                                         text = "₹ ",
                                         style = TextStyle(
                                             fontFamily = SpaceGrotesk,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             fontSize = 16.sp,
-                                            color = RupeeGold
+                                            color = colors.primary
                                         )
                                     )
                                 },
                                 textStyle = TextStyle(
                                     fontFamily = SpaceGrotesk,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
-                                    color = PrimaryText,
-                                    fontFeatureSettings = "tnum"
+                                    color = colors.textPrimary
                                 ),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = RupeeGold,
-                                    unfocusedBorderColor = LedgerDivider,
-                                    focusedContainerColor = LedgerInk,
-                                    unfocusedContainerColor = LedgerInk,
-                                    cursorColor = RupeeGold,
-                                    focusedLabelColor = RupeeGold,
-                                    unfocusedLabelColor = SecondaryText
+                                    focusedBorderColor = colors.primary,
+                                    unfocusedBorderColor = colors.border,
+                                    cursorColor = colors.primary
                                 ),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(3.dp)
+                                shape = RoundedCornerShape(12.dp)
                             )
                         }
                     }
@@ -255,28 +259,27 @@ fun WalletSetupScreen(
                 },
                 enabled = !isSaving,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = RupeeGold,
-                    contentColor = LedgerInk
+                    containerColor = colors.primary,
+                    contentColor = if (colors.isDark) Color(0xFF0F2625) else Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .height(48.dp),
-                shape = RoundedCornerShape(4.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(14.dp)
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = LedgerInk,
+                        color = if (colors.isDark) Color(0xFF0F2625) else Color.White,
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        text = "OPEN PASSBOOK LEDGER",
-                        fontFamily = IbmPlexSans,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+                        text = "Get Started",
+                        fontFamily = Manrope,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

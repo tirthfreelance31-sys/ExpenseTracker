@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -56,6 +57,7 @@ fun AddTransactionScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val colors = AppTheme.colors
 
     var selectedTab by remember { mutableStateOf(TransactionTab.EXPENSE) }
     var amountInput by remember { mutableStateOf("") }
@@ -72,7 +74,6 @@ fun AddTransactionScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
 
-    // Set default wallet & category selection when wallets/categories load
     LaunchedEffect(wallets) {
         if (selectedWalletId == null && wallets.isNotEmpty()) {
             selectedWalletId = wallets.first().id
@@ -87,7 +88,6 @@ fun AddTransactionScreen(
         }
     }
 
-    // Load existing transaction for editing
     LaunchedEffect(editingTransactionId) {
         if (editingTransactionId != null) {
             val pair = onFetchTransactionDetails(editingTransactionId)
@@ -124,7 +124,7 @@ fun AddTransactionScreen(
                         selectedToWalletId = mainTx.walletId
                     }
                     TransactionType.OPENING_BALANCE -> {
-                        Toast.makeText(context, "Opening Balance transactions should be edited via Wallet Detail Reconcile", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Opening Balance transactions should be edited via Wallet Details", Toast.LENGTH_LONG).show()
                         onNavigateBack()
                     }
                 }
@@ -134,17 +134,25 @@ fun AddTransactionScreen(
 
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
 
+    val tabAccentColor = when (selectedTab) {
+        TransactionTab.EXPENSE -> colors.expense
+        TransactionTab.INCOME -> colors.income
+        TransactionTab.TRANSFER -> colors.primary
+    }
+
     Scaffold(
-        containerColor = LedgerInk,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditMode) "EDIT LEDGER ENTRY" else "RECORD ENTRY",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = RupeeGold,
-                        letterSpacing = 1.2.sp
+                        text = if (isEditMode) "Edit Transaction" else "Add Transaction",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp
+                        ),
+                        color = colors.textPrimary
                     )
                 },
                 navigationIcon = {
@@ -152,7 +160,7 @@ fun AddTransactionScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = SecondaryText
+                            tint = colors.textPrimary
                         )
                     }
                 },
@@ -161,14 +169,14 @@ fun AddTransactionScreen(
                         IconButton(onClick = { showDeleteConfirmDialog = true }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Delete Entry",
-                                tint = SealRed
+                                contentDescription = "Delete",
+                                tint = colors.expense
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LedgerInk
+                    containerColor = colors.background
                 )
             )
         }
@@ -177,26 +185,30 @@ fun AddTransactionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Accounting Classification Tabs (DR · Expense | CR · Income | TR · Transfer)
+            // Modern Type Selector Tabs
             Surface(
-                shape = RoundedCornerShape(3.dp),
-                color = LedgerPaper,
-                border = BorderStroke(1.dp, LedgerDivider),
+                shape = RoundedCornerShape(14.dp),
+                color = colors.surface,
+                border = BorderStroke(1.dp, colors.border),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp)
+                ) {
                     val tabs = listOf(
-                        Triple(TransactionTab.EXPENSE, "DR · EXPENSE", SealRed),
-                        Triple(TransactionTab.INCOME, "CR · INCOME", CurrencyGreen),
-                        Triple(TransactionTab.TRANSFER, "TR · TRANSFER", StampIndigo)
+                        Triple(TransactionTab.EXPENSE, "Expense", colors.expense),
+                        Triple(TransactionTab.INCOME, "Income", colors.income),
+                        Triple(TransactionTab.TRANSFER, "Transfer", colors.primary)
                     )
 
-                    tabs.forEach { (tab, title, accentColor) ->
+                    tabs.forEach { (tab, title, accent) ->
                         val isSelected = selectedTab == tab
-                        Box(
+                        Surface(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
@@ -205,25 +217,24 @@ fun AddTransactionScreen(
                                     } else {
                                         Toast.makeText(context, "Transaction type cannot be changed when editing", Toast.LENGTH_SHORT).show()
                                     }
-                                }
-                                .background(if (isSelected) accentColor.copy(alpha = 0.15f) else Color.Transparent)
-                                .padding(vertical = 10.dp),
-                            contentAlignment = Alignment.Center
+                                },
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isSelected) accent.copy(alpha = 0.12f) else Color.Transparent
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
                                     text = title,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) accentColor else SecondaryText,
-                                    letterSpacing = 0.6.sp
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .width(28.dp)
-                                        .height(2.dp)
-                                        .background(if (isSelected) accentColor else Color.Transparent, RoundedCornerShape(1.dp))
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = Manrope,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                        fontSize = 14.sp
+                                    ),
+                                    color = if (isSelected) accent else colors.textSecondary
                                 )
                             }
                         }
@@ -233,9 +244,9 @@ fun AddTransactionScreen(
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Amount Field (Hero Accounting Entry)
+                // Large Amount Input Field
                 item {
                     OutlinedTextField(
                         value = amountInput,
@@ -244,64 +255,51 @@ fun AddTransactionScreen(
                                 amountInput = newValue
                             }
                         },
-                        label = { Text("Financial Amount *", style = MaterialTheme.typography.bodySmall) },
+                        label = { Text("Amount *", style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter)) },
                         prefix = {
                             Text(
                                 text = "₹ ",
                                 style = TextStyle(
                                     fontFamily = SpaceGrotesk,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 22.sp,
-                                    color = when (selectedTab) {
-                                        TransactionTab.EXPENSE -> SealRed
-                                        TransactionTab.INCOME -> CurrencyGreen
-                                        TransactionTab.TRANSFER -> StampIndigo
-                                    }
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 24.sp,
+                                    color = tabAccentColor
                                 )
                             )
                         },
                         textStyle = TextStyle(
                             fontFamily = SpaceGrotesk,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 22.sp,
-                            color = PrimaryText,
-                            fontFeatureSettings = "tnum"
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp,
+                            color = colors.textPrimary,
+                            letterSpacing = (-0.3).sp
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = RupeeGold,
-                            unfocusedBorderColor = LedgerDivider,
-                            focusedContainerColor = LedgerPaper,
-                            unfocusedContainerColor = LedgerPaper,
-                            cursorColor = RupeeGold,
-                            focusedLabelColor = RupeeGold,
-                            unfocusedLabelColor = SecondaryText
+                            focusedBorderColor = colors.primary,
+                            unfocusedBorderColor = colors.border,
+                            cursorColor = colors.primary
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(3.dp)
+                        shape = RoundedCornerShape(14.dp)
                     )
                 }
 
                 // Wallet Selection for Expense / Income
                 if (selectedTab != TransactionTab.TRANSFER) {
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                                Text(
-                                    text = "SELECT ACCOUNT FOLIO",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SecondaryText,
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "WALLET",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp,
                                     letterSpacing = 1.sp
-                                )
-                                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                            }
+                                ),
+                                color = colors.textSecondary
+                            )
 
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -309,49 +307,35 @@ fun AddTransactionScreen(
                             ) {
                                 wallets.forEach { wallet ->
                                     val isSelected = selectedWalletId == wallet.id
-                                    val accentColor = when (wallet.name.lowercase()) {
-                                        "upi" -> StampIndigo
-                                        "cash" -> CurrencyGreen
-                                        "savings" -> RupeeGold
-                                        else -> RupeeGold
-                                    }
-
                                     Surface(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable { selectedWalletId = wallet.id },
-                                        shape = RoundedCornerShape(3.dp),
-                                        color = if (isSelected) LedgerPaperVariant else LedgerPaper,
-                                        border = BorderStroke(1.dp, if (isSelected) RupeeGold else LedgerDivider)
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (isSelected) colors.primary.copy(alpha = 0.12f) else colors.surface,
+                                        border = BorderStroke(1.dp, if (isSelected) colors.primary else colors.border)
                                     ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        Column(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(3.dp)
-                                                    .height(18.dp)
-                                                    .background(accentColor, RoundedCornerShape(1.dp))
+                                            Text(
+                                                text = wallet.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontFamily = Inter,
+                                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                                    fontSize = 13.sp
+                                                ),
+                                                color = if (isSelected) colors.primary else colors.textPrimary
                                             )
-                                            Column {
-                                                Text(
-                                                    text = wallet.name,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                    color = if (isSelected) PrimaryText else SecondaryText
+                                            Text(
+                                                text = "₹${"%.0f".format(wallet.currentBalance)}",
+                                                style = TextStyle(
+                                                    fontFamily = SpaceGrotesk,
+                                                    fontSize = 12.sp,
+                                                    color = colors.textSecondary
                                                 )
-                                                Text(
-                                                    text = "₹${"%.0f".format(wallet.currentBalance)}",
-                                                    style = TextStyle(
-                                                        fontFamily = SpaceGrotesk,
-                                                        fontSize = 11.sp,
-                                                        color = MutedText,
-                                                        fontFeatureSettings = "tnum"
-                                                    )
-                                                )
-                                            }
+                                            )
                                         }
                                     }
                                 }
@@ -359,32 +343,20 @@ fun AddTransactionScreen(
                         }
                     }
                 } else {
-                    // From Wallet & To Wallet for Transfer
+                    // Transfer: From Wallet & To Wallet
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                                Text(
-                                    text = "TRANSFER ROUTE",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SecondaryText,
-                                    letterSpacing = 1.sp
-                                )
-                                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                            }
-
-                            // Source Wallet
                             Text(
-                                text = "FROM FOLIO (OUTGOING):",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = SecondaryText,
-                                letterSpacing = 0.5.sp
+                                text = "FROM WALLET",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = colors.textSecondary
                             )
+
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -395,29 +367,38 @@ fun AddTransactionScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable { selectedFromWalletId = wallet.id },
-                                        shape = RoundedCornerShape(3.dp),
-                                        color = if (isSelected) LedgerPaperVariant else LedgerPaper,
-                                        border = BorderStroke(1.dp, if (isSelected) StampIndigo else LedgerDivider)
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (isSelected) colors.expense.copy(alpha = 0.12f) else colors.surface,
+                                        border = BorderStroke(1.dp, if (isSelected) colors.expense else colors.border)
                                     ) {
                                         Text(
                                             text = wallet.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) PrimaryText else SecondaryText,
-                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = Inter,
+                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                                fontSize = 13.sp
+                                            ),
+                                            color = if (isSelected) colors.expense else colors.textPrimary,
+                                            modifier = Modifier.padding(vertical = 10.dp),
                                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                         )
                                     }
                                 }
                             }
 
-                            // Destination Wallet
+                            Spacer(modifier = Modifier.height(2.dp))
+
                             Text(
-                                text = "TO FOLIO (INCOMING):",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = SecondaryText,
-                                letterSpacing = 0.5.sp
+                                text = "TO WALLET",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = colors.textSecondary
                             )
+
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -428,16 +409,19 @@ fun AddTransactionScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable { selectedToWalletId = wallet.id },
-                                        shape = RoundedCornerShape(3.dp),
-                                        color = if (isSelected) LedgerPaperVariant else LedgerPaper,
-                                        border = BorderStroke(1.dp, if (isSelected) CurrencyGreen else LedgerDivider)
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (isSelected) colors.income.copy(alpha = 0.12f) else colors.surface,
+                                        border = BorderStroke(1.dp, if (isSelected) colors.income else colors.border)
                                     ) {
                                         Text(
                                             text = wallet.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) PrimaryText else SecondaryText,
-                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = Inter,
+                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                                fontSize = 13.sp
+                                            ),
+                                            color = if (isSelected) colors.income else colors.textPrimary,
+                                            modifier = Modifier.padding(vertical = 10.dp),
                                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                         )
                                     }
@@ -447,45 +431,43 @@ fun AddTransactionScreen(
                     }
                 }
 
-                // Category Selection for Expense (or optional Income)
+                // Category Selection for Expense
                 if (selectedTab == TransactionTab.EXPENSE) {
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                                Text(
-                                    text = "CLASSIFICATION",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SecondaryText,
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "CATEGORY",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 11.sp,
                                     letterSpacing = 1.sp
-                                )
-                                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                            }
+                                ),
+                                color = colors.textSecondary
+                            )
 
                             FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 categories.forEach { category ->
                                     val isSelected = selectedCategoryId == category.id
                                     Surface(
                                         modifier = Modifier.clickable { selectedCategoryId = category.id },
-                                        shape = RoundedCornerShape(3.dp),
-                                        color = if (isSelected) RupeeGold.copy(alpha = 0.15f) else LedgerPaper,
-                                        border = BorderStroke(1.dp, if (isSelected) RupeeGold else LedgerDivider)
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) colors.primary.copy(alpha = 0.14f) else colors.surface,
+                                        border = BorderStroke(1.dp, if (isSelected) colors.primary else colors.border)
                                     ) {
                                         Text(
                                             text = category.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) RupeeGold else PrimaryText,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = Inter,
+                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                                fontSize = 13.sp
+                                            ),
+                                            color = if (isSelected) colors.primary else colors.textPrimary,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
                                         )
                                     }
                                 }
@@ -494,24 +476,23 @@ fun AddTransactionScreen(
                     }
                 }
 
-                // Optional Note Field
+                // Note Field
                 item {
                     OutlinedTextField(
                         value = noteInput,
                         onValueChange = { noteInput = it },
-                        label = { Text("Particulars / Note (Optional)", style = MaterialTheme.typography.bodySmall) },
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = PrimaryText),
+                        label = { Text("Note (Optional)", style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter)) },
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = Inter,
+                            color = colors.textPrimary
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = RupeeGold,
-                            unfocusedBorderColor = LedgerDivider,
-                            focusedContainerColor = LedgerPaper,
-                            unfocusedContainerColor = LedgerPaper,
-                            cursorColor = RupeeGold,
-                            focusedLabelColor = RupeeGold,
-                            unfocusedLabelColor = SecondaryText
+                            focusedBorderColor = colors.primary,
+                            unfocusedBorderColor = colors.border,
+                            cursorColor = colors.primary
                         ),
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(3.dp)
+                        shape = RoundedCornerShape(14.dp)
                     )
                 }
 
@@ -525,14 +506,14 @@ fun AddTransactionScreen(
                                     timestamp = newTimestamp
                                 }
                             },
-                        shape = RoundedCornerShape(3.dp),
-                        color = LedgerPaper,
-                        border = BorderStroke(1.dp, LedgerDivider)
+                        shape = RoundedCornerShape(14.dp),
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.border)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
+                                .padding(horizontal = 14.dp, vertical = 13.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -543,41 +524,43 @@ fun AddTransactionScreen(
                                 Icon(
                                     Icons.Default.CalendarToday,
                                     contentDescription = null,
-                                    tint = RupeeGold,
+                                    tint = colors.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Column {
                                     Text(
-                                        text = "ENTRY TIMESTAMP",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = SecondaryText,
-                                        letterSpacing = 0.5.sp
+                                        text = "Date & Time",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = Inter,
+                                            fontSize = 11.sp
+                                        ),
+                                        color = colors.textSecondary
                                     )
                                     Text(
-                                        text = dateFormatter.format(Date(timestamp)).uppercase(),
+                                        text = dateFormatter.format(Date(timestamp)),
                                         style = TextStyle(
                                             fontFamily = SpaceGrotesk,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.Medium,
                                             fontSize = 13.sp,
-                                            color = PrimaryText,
-                                            fontFeatureSettings = "tnum"
+                                            color = colors.textPrimary
                                         )
                                     )
                                 }
                             }
                             Text(
-                                text = "ADJUST",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = RupeeGold,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.8.sp
+                                text = "Change",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = colors.primary
                             )
                         }
                     }
                 }
             }
 
-            // Action Buttons
+            // Action Button
             Button(
                 onClick = {
                     if (isSaving) return@Button
@@ -608,7 +591,7 @@ fun AddTransactionScreen(
                                     if (isEditMode) editingMainTx?.id else null
                                 )
                                 isSaving = false
-                                Toast.makeText(context, if (isEditMode) "Ledger entry updated!" else "Ledger entry committed!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, if (isEditMode) "Transaction updated!" else "Expense saved!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -626,7 +609,7 @@ fun AddTransactionScreen(
                                     if (isEditMode) editingMainTx?.id else null
                                 )
                                 isSaving = false
-                                Toast.makeText(context, if (isEditMode) "Ledger entry updated!" else "Ledger entry committed!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, if (isEditMode) "Transaction updated!" else "Income saved!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -638,7 +621,7 @@ fun AddTransactionScreen(
                                 return@Button
                             }
                             if (fromId == toId) {
-                                Toast.makeText(context, "From Wallet and To Wallet cannot be the same", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "From and To wallets cannot be the same", Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
 
@@ -659,7 +642,7 @@ fun AddTransactionScreen(
                                     fromTxId, toTxId, linkedId
                                 )
                                 isSaving = false
-                                Toast.makeText(context, if (isEditMode) "Transfer updated!" else "Transfer committed!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, if (isEditMode) "Transfer updated!" else "Transfer saved!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -667,51 +650,56 @@ fun AddTransactionScreen(
                 },
                 enabled = !isSaving,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = RupeeGold,
-                    contentColor = LedgerInk
+                    containerColor = colors.primary,
+                    contentColor = if (colors.isDark) Color(0xFF0F2625) else Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .height(48.dp),
-                shape = RoundedCornerShape(4.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(14.dp)
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(modifier = Modifier.size(22.dp), color = LedgerInk, strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = if (colors.isDark) Color(0xFF0F2625) else Color.White,
+                        strokeWidth = 2.dp
+                    )
                 } else {
                     Text(
-                        text = if (isEditMode) "UPDATE ENTRY" else "COMMIT ENTRY",
-                        fontFamily = IbmPlexSans,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+                        text = if (isEditMode) "Save Changes" else "Save Transaction",
+                        fontFamily = Manrope,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         }
 
-        // Confirmation Dialog for Deletion
+        // Delete Confirmation Dialog
         if (showDeleteConfirmDialog && editingMainTx != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
-                containerColor = LedgerPaper,
-                shape = RoundedCornerShape(4.dp),
+                containerColor = colors.surface,
+                shape = RoundedCornerShape(18.dp),
                 title = {
                     Text(
-                        "Delete Ledger Entry?",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
+                        "Delete Transaction?",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = colors.textPrimary
                     )
                 },
                 text = {
                     Text(
                         if (selectedTab == TransactionTab.TRANSFER)
-                            "This will atomically delete both linked transfer rows. Wallet balances will be recalculated."
+                            "This will delete both linked transfer entries and recalculate wallet balances."
                         else
-                            "Are you sure you want to delete this ledger entry? Live balances will be automatically recalculated.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = SecondaryText
+                            "Are you sure you want to delete this transaction? Wallet balances will be recalculated.",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = Inter),
+                        color = colors.textSecondary
                     )
                 },
                 confirmButton = {
@@ -726,18 +714,21 @@ fun AddTransactionScreen(
                                 onNavigateBack()
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = SealRed, contentColor = PrimaryText),
-                        shape = RoundedCornerShape(3.dp)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.expense,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("Delete", fontWeight = FontWeight.Bold)
+                        Text("Delete", fontWeight = FontWeight.SemiBold, fontFamily = Inter)
                     }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = { showDeleteConfirmDialog = false },
-                        shape = RoundedCornerShape(3.dp)
+                        shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("Cancel", color = SecondaryText)
+                        Text("Cancel", color = colors.textSecondary, fontFamily = Inter)
                     }
                 }
             )
@@ -745,7 +736,6 @@ fun AddTransactionScreen(
     }
 }
 
-// Native Date/Time Picker Dialog Helper
 private fun showDateTimePicker(context: Context, initialTimestamp: Long, onDateTimeSelected: (Long) -> Unit) {
     val calendar = Calendar.getInstance().apply { timeInMillis = initialTimestamp }
     DatePickerDialog(

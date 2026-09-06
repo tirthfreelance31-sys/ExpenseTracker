@@ -1,36 +1,55 @@
 package com.expense.tracker.ui.screens.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.expense.tracker.data.repository.ThemeMode
+import com.expense.tracker.data.repository.UserPreferencesRepository
 import com.expense.tracker.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    preferencesRepository: UserPreferencesRepository? = null
+) {
+    val colors = AppTheme.colors
+    val currentThemeMode = preferencesRepository?.themeModeFlow?.collectAsState()?.value ?: ThemeMode.SYSTEM
+
     Scaffold(
-        containerColor = LedgerInk,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "LEDGER CONFIGURATION",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = RupeeGold,
-                        letterSpacing = 1.2.sp
+                        text = "Settings",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = Manrope,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp
+                        ),
+                        color = colors.textPrimary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LedgerInk
+                    containerColor = colors.background
                 )
             )
         }
@@ -39,79 +58,188 @@ fun SettingsScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Section 1: Security & Storage
+            // Section 1: APPEARANCE
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                    Text(
-                        text = "SECURITY & ENCRYPTION",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText,
+                Text(
+                    text = "APPEARANCE",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
                         letterSpacing = 1.sp
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                }
+                    ),
+                    color = colors.textSecondary
+                )
             }
 
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(3.dp),
-                    color = LedgerPaper,
-                    border = BorderStroke(1.dp, LedgerDivider)
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.border)
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = "100% Offline Local Storage",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "All database records are stored locally with Room + SQLCipher 256-bit passphrase encryption. No cloud servers, analytics, or external API communication.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SecondaryText
-                            )
+                        ThemeOptionRow(
+                            title = "System default",
+                            subtitle = "Follow your device settings",
+                            icon = Icons.Default.SettingsBrightness,
+                            selected = currentThemeMode == ThemeMode.SYSTEM,
+                            onClick = { preferencesRepository?.setThemeMode(ThemeMode.SYSTEM) }
+                        )
+
+                        HorizontalDivider(
+                            color = colors.border.copy(alpha = 0.5f),
+                            thickness = 0.8.dp,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        ThemeOptionRow(
+                            title = "Light",
+                            subtitle = "Always use light theme",
+                            icon = Icons.Default.LightMode,
+                            selected = currentThemeMode == ThemeMode.LIGHT,
+                            onClick = { preferencesRepository?.setThemeMode(ThemeMode.LIGHT) }
+                        )
+
+                        HorizontalDivider(
+                            color = colors.border.copy(alpha = 0.5f),
+                            thickness = 0.8.dp,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        ThemeOptionRow(
+                            title = "Dark",
+                            subtitle = "Always use dark theme",
+                            icon = Icons.Default.DarkMode,
+                            selected = currentThemeMode == ThemeMode.DARK,
+                            onClick = { preferencesRepository?.setThemeMode(ThemeMode.DARK) }
+                        )
+                    }
+                }
+            }
+
+            // Section 2: PRIVACY & SECURITY
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "DATA & SECURITY",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
+                        letterSpacing = 1.sp
+                    ),
+                    color = colors.textSecondary
+                )
+            }
+
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.border)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = colors.softTealBg,
+                                modifier = Modifier.size(38.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Shield,
+                                        contentDescription = null,
+                                        tint = colors.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "100% Offline & Private",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = Inter,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 14.sp
+                                    ),
+                                    color = colors.textPrimary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "All financial records are encrypted on-device with SQLCipher AES-256. Zero cloud storage, analytics, or trackers.",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = Inter,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.textSecondary
+                                )
+                            }
                         }
 
-                        HorizontalDivider(color = LedgerDivider, thickness = 0.5.dp)
+                        HorizontalDivider(color = colors.border.copy(alpha = 0.5f), thickness = 0.8.dp)
 
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "ENCRYPTION CIPHER",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = SecondaryText,
-                                letterSpacing = 0.5.sp
-                            )
                             Surface(
-                                shape = RoundedCornerShape(3.dp),
-                                color = CurrencyGreen.copy(alpha = 0.12f),
-                                border = BorderStroke(1.dp, CurrencyGreen.copy(alpha = 0.4f))
+                                shape = RoundedCornerShape(10.dp),
+                                color = colors.softGreenBg,
+                                modifier = Modifier.size(38.dp)
                             ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = colors.income,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "AES-256 ACTIVE",
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = CurrencyGreen,
-                                    letterSpacing = 0.5.sp
+                                    text = "Dynamic Balances",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = Inter,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 14.sp
+                                    ),
+                                    color = colors.textPrimary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Single source of truth: wallet balances are computed dynamically from logged transactions, ensuring zero data desync.",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = Inter,
+                                        fontSize = 12.sp
+                                    ),
+                                    color = colors.textSecondary
                                 )
                             }
                         }
@@ -119,128 +247,178 @@ fun SettingsScreen() {
                 }
             }
 
-            // Section 2: Ledger Engine Rules
+            // Section 3: APPLICATION INFO
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                    Text(
-                        text = "ACCOUNTING ENGINE RULES",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText,
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "ABOUT",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
                         letterSpacing = 1.sp
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                }
+                    ),
+                    color = colors.textSecondary
+                )
             }
 
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(3.dp),
-                    color = LedgerPaper,
-                    border = BorderStroke(1.dp, LedgerDivider)
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.border)
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "Single Source of Truth Balances",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
+                                "App Name",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter),
+                                color = colors.textSecondary
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Wallet balance = Opening Balance + Income - Expenses + Transfers In - Transfers Out. Stored balances are dynamically computed, preventing ledger desync.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SecondaryText
+                                "Expense Tracker",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                color = colors.textPrimary
                             )
                         }
 
-                        HorizontalDivider(color = LedgerDivider, thickness = 0.5.dp)
+                        HorizontalDivider(color = colors.border.copy(alpha = 0.5f), thickness = 0.8.dp)
 
-                        Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "Atomic Inter-Wallet Transfers",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
+                                "Theme",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter),
+                                color = colors.textSecondary
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Every wallet transfer atomically persists paired Transfer-Out and Transfer-In entries linked by a shared identifier.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SecondaryText
+                                "Warm Fintech",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                color = colors.primary
+                            )
+                        }
+
+                        HorizontalDivider(color = colors.border.copy(alpha = 0.5f), thickness = 0.8.dp)
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Version",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = Inter),
+                                color = colors.textSecondary
+                            )
+                            Text(
+                                "1.0.0 (Offline Build)",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                color = colors.textPrimary
                             )
                         }
                     }
                 }
             }
 
-            // Section 3: App Specifications
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    HorizontalDivider(modifier = Modifier.width(16.dp), thickness = 1.dp, color = LedgerDivider)
-                    Text(
-                        text = "SPECIFICATIONS",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText,
-                        letterSpacing = 1.sp
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), thickness = 1.dp, color = LedgerDivider)
-                }
-            }
-
-            item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(3.dp),
-                    color = LedgerPaper,
-                    border = BorderStroke(1.dp, LedgerDivider)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Design Edition", style = MaterialTheme.typography.bodySmall, color = SecondaryText)
-                            Text("Indian Passbook / Bahi-Khata", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = PrimaryText)
-                        }
-                        HorizontalDivider(color = LedgerDivider, thickness = 0.5.dp)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Architecture", style = MaterialTheme.typography.bodySmall, color = SecondaryText)
-                            Text("Kotlin Compose + Room SQLite", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = PrimaryText)
-                        }
-                        HorizontalDivider(color = LedgerDivider, thickness = 0.5.dp)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("Application Version", style = MaterialTheme.typography.bodySmall, color = SecondaryText)
-                            Text("1.0.0 (Offline Build)", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = RupeeGold)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun ThemeOptionRow(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = AppTheme.colors
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = if (selected) colors.primary.copy(alpha = 0.12f) else colors.surfaceSecondary,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = if (selected) colors.primary else colors.textSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = Inter,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        fontSize = 15.sp
+                    ),
+                    color = if (selected) colors.primary else colors.textPrimary
+                )
+                Spacer(modifier = Modifier.height(1.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = Inter,
+                        fontSize = 12.sp
+                    ),
+                    color = colors.textSecondary
+                )
+            }
+        }
+
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = colors.primary,
+                unselectedColor = colors.textSecondary.copy(alpha = 0.6f)
+            )
+        )
     }
 }

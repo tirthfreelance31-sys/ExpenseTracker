@@ -61,9 +61,9 @@ fun MainAppNavigation(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
-                    containerColor = com.expense.tracker.ui.theme.SurfacePrimary,
-                    contentColor = com.expense.tracker.ui.theme.TextSecondary,
-                    tonalElevation = 3.dp
+                    containerColor = com.expense.tracker.ui.theme.AppTheme.colors.surface,
+                    contentColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
+                    tonalElevation = 2.dp
                 ) {
                     bottomNavItems.forEach { screen ->
                         val isSelected = currentRoute == screen.route
@@ -73,26 +73,26 @@ fun MainAppNavigation(
                                     Icon(
                                         icon,
                                         contentDescription = screen.title,
-                                        tint = if (isSelected) com.expense.tracker.ui.theme.BrandViolet else com.expense.tracker.ui.theme.TextSecondary
+                                        tint = if (isSelected) com.expense.tracker.ui.theme.AppTheme.colors.primary else com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
                                     )
                                 }
                             },
                             label = {
                                 Text(
                                     screen.title,
-                                    color = if (isSelected) com.expense.tracker.ui.theme.BrandViolet else com.expense.tracker.ui.theme.TextSecondary,
-                                    fontFamily = com.expense.tracker.ui.theme.IbmPlexSans,
-                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Normal,
-                                    fontSize = 12.sp
+                                    color = if (isSelected) com.expense.tracker.ui.theme.AppTheme.colors.primary else com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
+                                    fontFamily = com.expense.tracker.ui.theme.Inter,
+                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Medium,
+                                    fontSize = 11.sp
                                 )
                             },
                             selected = isSelected,
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = com.expense.tracker.ui.theme.BrandViolet.copy(alpha = 0.12f),
-                                selectedIconColor = com.expense.tracker.ui.theme.BrandViolet,
-                                unselectedIconColor = com.expense.tracker.ui.theme.TextSecondary,
-                                selectedTextColor = com.expense.tracker.ui.theme.BrandViolet,
-                                unselectedTextColor = com.expense.tracker.ui.theme.TextSecondary
+                                indicatorColor = com.expense.tracker.ui.theme.AppTheme.colors.primary.copy(alpha = 0.12f),
+                                selectedIconColor = com.expense.tracker.ui.theme.AppTheme.colors.primary,
+                                unselectedIconColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary,
+                                selectedTextColor = com.expense.tracker.ui.theme.AppTheme.colors.primary,
+                                unselectedTextColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {
@@ -328,7 +328,7 @@ fun MainAppNavigation(
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                SettingsScreen(preferencesRepository = preferencesRepository)
             }
         }
     }
