@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.expense.tracker.data.local.entity.CategoryEntity
 import com.expense.tracker.data.local.entity.TransactionEntity
 import com.expense.tracker.data.model.TransactionType
 import com.expense.tracker.data.repository.ExpenseRepository
@@ -362,14 +363,44 @@ fun MainAppNavigation(
             }
 
             composable(Screen.Categories.route) {
+                val catScope = rememberCoroutineScope()
                 CategoriesScreen(
                     categories = categories,
+                    onAddCategory = { name, iconName ->
+                        catScope.launch {
+                            repository.insertCategory(
+                                CategoryEntity(
+                                    name = name,
+                                    iconRes = iconName,
+                                    isDefault = false
+                                )
+                            )
+                        }
+                    },
+                    onUpdateCategory = { updatedCat ->
+                        catScope.launch {
+                            repository.updateCategory(updatedCat)
+                        }
+                    },
                     onBack = { navController.popBackStack() }
                 )
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen(preferencesRepository = preferencesRepository)
+                SettingsScreen(
+                    preferencesRepository = preferencesRepository,
+                    wallets = wallets,
+                    categoriesCount = categories.size,
+                    onNavigateToWalletDetail = { walletId ->
+                        navController.navigate(Screen.WalletDetail.createRoute(walletId))
+                    },
+                    onNavigateToCategories = {
+                        navController.navigate(Screen.Categories.route)
+                    },
+                    onNavigateToWalletSetup = {
+                        navController.navigate(Screen.WalletSetup.route)
+                    }
+                )
             }
         }
     }
