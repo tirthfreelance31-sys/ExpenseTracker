@@ -7,7 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -307,18 +309,35 @@ fun MainAppNavigation(
             }
 
             composable(Screen.History.route) {
+                val historyScope = rememberCoroutineScope()
                 HistoryScreen(
                     transactions = allTransactions,
                     wallets = wallets,
                     categories = categories,
-                    onEditTransaction = { txId -> navController.navigate(Screen.AddTransaction.createRoute(txId)) }
+                    onEditTransaction = { txId -> navController.navigate(Screen.AddTransaction.createRoute(txId)) },
+                    onDeleteTransaction = { tx ->
+                        historyScope.launch {
+                            if (tx.linkedTransferId != null) {
+                                repository.deleteTransfer(tx.linkedTransferId)
+                            } else {
+                                repository.deleteTransaction(tx)
+                            }
+                        }
+                    },
+                    onRestoreTransaction = { txList ->
+                        historyScope.launch {
+                            for (tx in txList) {
+                                repository.insertTransaction(tx)
+                            }
+                        }
+                    }
                 )
             }
 
             composable(Screen.Summary.route) {
                 SummaryScreen(
                     wallets = wallets,
-                    recentExpenses = recentExpenses,
+                    allTransactions = allTransactions,
                     categories = categories
                 )
             }
