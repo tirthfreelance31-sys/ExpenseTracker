@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,15 +64,22 @@ fun MainAppNavigation(
         bottomBar = {
             if (showBottomBar) {
                 val isDark = com.expense.tracker.ui.theme.AppTheme.colors.isDark
-                val navBg = if (isDark) Color(0xF2181B1A) else Color(0xF5FFFDF9)
-                val navBorder = if (isDark) Color(0xFF262A28) else Color(0xFFECE8DF)
-                val indicatorColor = if (isDark) Color(0xFF244745) else Color(0xFFD8ECEA)
+                val navBg = if (isDark) Color(0xCC181B1A) else Color(0xD9FFFDF9)
+                val navBorderBrush = Brush.horizontalGradient(
+                    listOf(
+                        if (isDark) Color(0xFF262A28) else Color(0xFFEAE5DC),
+                        if (isDark) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.85f),
+                        if (isDark) Color(0xFF262A28) else Color(0xFFEAE5DC)
+                    )
+                )
+                val indicatorColor = if (isDark) Color(0xCC244745) else Color(0xCCD8ECEA)
                 val selectedItemColor = com.expense.tracker.ui.theme.AppTheme.colors.primary
                 val unselectedColor = com.expense.tracker.ui.theme.AppTheme.colors.textSecondary
 
                 Surface(
                     color = navBg,
-                    border = BorderStroke(1.dp, navBorder)
+                    border = BorderStroke(1.dp, navBorderBrush),
+                    shadowElevation = 8.dp
                 ) {
                     NavigationBar(
                         containerColor = Color.Transparent,

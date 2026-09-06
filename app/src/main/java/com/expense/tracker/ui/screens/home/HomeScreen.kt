@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -85,6 +86,7 @@ fun HomeScreen(
 
     val colors = AppTheme.colors
 
+    // Filter out system OPENING_BALANCE entries on Home screen so actual user activity is prioritized
     val userTransactions = remember(recentTransactions) {
         recentTransactions.filter { it.type != TransactionType.OPENING_BALANCE }
     }
@@ -94,21 +96,45 @@ fun HomeScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
+        // Multi-layered organic ambient lighting behind the glass elements
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(340.dp)
+                .height(520.dp)
         ) {
-            val ambientColor = if (colors.isDark) {
-                Color(0xFF1E4844).copy(alpha = 0.32f)
-            } else {
-                Color(0xFFD6EAE6).copy(alpha = 0.65f)
-            }
+            // 1. Top-right Soft Mint/Emerald Glow (illuminates Hero & Header)
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(ambientColor, Color.Transparent),
-                    center = Offset(size.width * 0.88f, size.height * 0.32f),
-                    radius = size.width * 0.75f
+                    colors = listOf(
+                        if (colors.isDark) Color(0xFF1E4844).copy(alpha = 0.48f) else Color(0xFF8AF8BE).copy(alpha = 0.42f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.86f, size.height * 0.22f),
+                    radius = size.width * 0.72f
+                )
+            )
+
+            // 2. Center-left Deep Teal Glow (shimmers through Hero & Wallet Carousel)
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        if (colors.isDark) Color(0xFF15383A).copy(alpha = 0.42f) else Color(0xFF167C80).copy(alpha = 0.20f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.12f, size.height * 0.50f),
+                    radius = size.width * 0.65f
+                )
+            )
+
+            // 3. Bottom-right Warm Amber Glow (revealed through Savings wallet card)
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        if (colors.isDark) Color(0xFF382914).copy(alpha = 0.38f) else Color(0xFFFDE68A).copy(alpha = 0.45f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.94f, size.height * 0.72f),
+                    radius = size.width * 0.52f
                 )
             )
         }
@@ -118,12 +144,28 @@ fun HomeScreen(
             floatingActionButton = {
                 ExtendedFloatingActionButton(
                     onClick = onNavigateToAddTransaction,
-                    modifier = Modifier.border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(16.dp)),
+                    modifier = Modifier
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(18.dp),
+                            ambientColor = Color(0x38167C80),
+                            spotColor = Color(0x38167C80)
+                        )
+                        .border(
+                            width = 1.2.dp,
+                            brush = Brush.linearGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.60f),
+                                    Color.White.copy(alpha = 0.20f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(18.dp)
+                        ),
                     containerColor = if (colors.isDark) Color(0xFF1E7072) else colors.primary,
                     contentColor = Color.White,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 4.dp,
+                        defaultElevation = 0.dp,
                         pressedElevation = 2.dp
                     ),
                     icon = {
@@ -153,6 +195,7 @@ fun HomeScreen(
                     .padding(horizontal = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
+                // 1. TOP HEADER (Greeting + date + glass settings action)
                 item {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(
@@ -184,9 +227,17 @@ fun HomeScreen(
 
                         Surface(
                             shape = CircleShape,
-                            color = if (colors.isDark) Color(0xFF262927) else Color(0xFFFFFDF9),
-                            border = BorderStroke(1.dp, if (colors.isDark) Color(0xFF383C3A) else Color(0xFFEAE5DC)),
-                            shadowElevation = if (colors.isDark) 0.dp else 1.dp,
+                            color = if (colors.isDark) Color(0xFF262927) else Color(0xCCFFFDF9),
+                            border = BorderStroke(
+                                1.dp,
+                                Brush.linearGradient(
+                                    listOf(
+                                        if (colors.isDark) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.85f),
+                                        if (colors.isDark) Color(0xFF383C3A) else Color(0xFFEAE5DC)
+                                    )
+                                )
+                            ),
+                            shadowElevation = if (colors.isDark) 0.dp else 2.dp,
                             modifier = Modifier.size(42.dp)
                         ) {
                             IconButton(
@@ -204,41 +255,39 @@ fun HomeScreen(
                     }
                 }
 
+                // 2. TOTAL BALANCE HERO GLASS CARD (Stitch Premium Glass variant)
                 item {
-                    val heroGradient = if (colors.isDark) {
+                    val heroBgGradient = if (colors.isDark) {
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xF2202321),
-                                Color(0xE61B1E1D)
+                                Color(0xB3202321), // ~70% opacity
+                                Color(0x99181B1A)  // ~60% opacity
                             )
                         )
                     } else {
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xF8FFFDF9),
-                                Color(0xEBFAF6EE)
+                                Color(0xB8FFFDF9), // ~72% opacity warm white
+                                Color(0x8CFAF6EE)  // ~55% opacity warm surface
                             )
                         )
                     }
 
-                    val heroBorder = if (colors.isDark) {
-                        BorderStroke(
-                            1.dp,
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFF58B9B7).copy(alpha = 0.35f),
-                                    Color(0xFF2F3230).copy(alpha = 0.6f)
-                                )
+                    val heroBorderBrush = if (colors.isDark) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.45f),
+                                Color(0xFF58B9B7).copy(alpha = 0.35f),
+                                Color(0xFF2F3230).copy(alpha = 0.20f)
                             )
                         )
                     } else {
-                        BorderStroke(
-                            1.dp,
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = 0.95f),
-                                    Color(0xFFE5DFD3).copy(alpha = 0.7f)
-                                )
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.95f),
+                                Color.White.copy(alpha = 0.50f),
+                                Color(0xFF167C80).copy(alpha = 0.25f),
+                                Color.White.copy(alpha = 0.25f)
                             )
                         )
                     }
@@ -246,22 +295,54 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .shadow(
+                                elevation = 10.dp,
+                                shape = RoundedCornerShape(22.dp),
+                                ambientColor = if (colors.isDark) Color(0x33000000) else Color(0x1F167C80),
+                                spotColor = if (colors.isDark) Color(0x2E58B9B7) else Color(0x1A167C80)
+                            )
                             .clip(RoundedCornerShape(22.dp))
-                            .background(heroGradient)
-                            .border(heroBorder, RoundedCornerShape(22.dp))
+                            .background(heroBgGradient)
+                            .border(1.dp, heroBorderBrush, RoundedCornerShape(22.dp))
                     ) {
+                        // Stitch Premium Glass inner specular glow & inset top highlight
                         Canvas(modifier = Modifier.matchParentSize()) {
-                            val auraColor = if (colors.isDark) {
-                                Color(0xFF244745).copy(alpha = 0.45f)
-                            } else {
-                                Color(0xFFD8ECEA).copy(alpha = 0.6f)
-                            }
+                            // Specular top-left glass highlight
                             drawCircle(
                                 brush = Brush.radialGradient(
-                                    colors = listOf(auraColor, Color.Transparent),
-                                    center = Offset(size.width * 0.9f, size.height * 0.2f),
+                                    colors = listOf(
+                                        if (colors.isDark) Color.White.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.55f),
+                                        Color.Transparent
+                                    ),
+                                    center = Offset(0f, 0f),
+                                    radius = size.width * 0.65f
+                                )
+                            )
+
+                            // Top-right subtle brand teal aura
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        if (colors.isDark) Color(0xFF244745).copy(alpha = 0.50f) else Color(0xFFD8ECEA).copy(alpha = 0.65f),
+                                        Color.Transparent
+                                    ),
+                                    center = Offset(size.width * 0.92f, size.height * 0.15f),
                                     radius = size.width * 0.55f
                                 )
+                            )
+
+                            // Inset top specular edge highlight line (simulating beveled glass edge)
+                            drawLine(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        if (colors.isDark) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.75f),
+                                        Color.Transparent
+                                    )
+                                ),
+                                start = Offset(size.width * 0.1f, 1f),
+                                end = Offset(size.width * 0.9f, 1f),
+                                strokeWidth = 1.5f
                             )
                         }
 
@@ -288,8 +369,11 @@ fun HomeScreen(
 
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
-                                    color = if (colors.isDark) Color(0xFF244745) else Color(0xFFD8ECEA),
-                                    border = BorderStroke(0.6.dp, colors.primary.copy(alpha = 0.25f))
+                                    color = if (colors.isDark) Color(0xCC244745) else Color(0xCCD8ECEA),
+                                    border = BorderStroke(
+                                        0.8.dp,
+                                        if (colors.isDark) Color.White.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.65f)
+                                    )
                                 ) {
                                     Text(
                                         text = "Across ${wallets.size} wallets",
@@ -320,7 +404,7 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(16.dp))
 
                             HorizontalDivider(
-                                color = colors.border.copy(alpha = 0.5f),
+                                color = colors.border.copy(alpha = 0.40f),
                                 thickness = 0.8.dp
                             )
 
@@ -377,6 +461,7 @@ fun HomeScreen(
                     }
                 }
 
+                // 3. WALLET SECTION ("YOUR MONEY") - Stitch Premium Glass Cards with Intentional Peek
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(
@@ -419,16 +504,49 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .width(114.dp)
                                         .height(138.dp)
+                                        .shadow(
+                                            elevation = 8.dp,
+                                            shape = RoundedCornerShape(20.dp),
+                                            ambientColor = identity.shadowTint,
+                                            spotColor = identity.shadowTint
+                                        )
                                         .clip(RoundedCornerShape(20.dp))
                                         .background(identity.backgroundBrush)
-                                        .border(BorderStroke(1.dp, identity.border), RoundedCornerShape(20.dp))
+                                        .border(1.dp, identity.borderBrush, RoundedCornerShape(20.dp))
                                         .clickable { onNavigateToWalletDetail(wallet.id) }
                                         .padding(12.dp)
                                 ) {
+                                    // Glass specular highlight and inset sheen on wallet cards
+                                    Canvas(modifier = Modifier.matchParentSize()) {
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    if (colors.isDark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.48f),
+                                                    Color.Transparent
+                                                ),
+                                                center = Offset(0f, 0f),
+                                                radius = size.width * 0.75f
+                                            )
+                                        )
+                                        drawLine(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    if (colors.isDark) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.65f),
+                                                    Color.Transparent
+                                                )
+                                            ),
+                                            start = Offset(size.width * 0.15f, 1f),
+                                            end = Offset(size.width * 0.85f, 1f),
+                                            strokeWidth = 1.2f
+                                        )
+                                    }
+
                                     Column(
                                         modifier = Modifier.fillMaxSize(),
                                         verticalArrangement = Arrangement.SpaceBetween
                                     ) {
+                                        // Squircle icon container
                                         Box(
                                             modifier = Modifier
                                                 .size(34.dp)
@@ -444,6 +562,7 @@ fun HomeScreen(
                                             )
                                         }
 
+                                        // Wallet texts: Name, Badge, Balance
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
                                                 text = wallet.name,
@@ -490,6 +609,7 @@ fun HomeScreen(
                     }
                 }
 
+                // 4. SPENDING INSIGHT ("THIS WEEK" - Kept more solid for contrast)
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
@@ -508,7 +628,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
                             color = colors.surface,
-                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.7f))
+                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.70f))
                         ) {
                             Column(
                                 modifier = Modifier
@@ -562,6 +682,7 @@ fun HomeScreen(
                                     }
                                 }
 
+                                // 7-Day clean pill expenditure bar chart
                                 val dayBuckets = remember(recentExpenses) {
                                     (6 downTo 0).map { daysBack ->
                                         val cal = Calendar.getInstance().apply {
@@ -608,10 +729,11 @@ fun HomeScreen(
                                                         .clip(RoundedCornerShape(7.dp))
                                                         .background(
                                                             if (bucket.isToday) colors.primary
-                                                            else colors.primary.copy(alpha = 0.4f)
+                                                            else colors.primary.copy(alpha = 0.40f)
                                                         )
                                                 )
                                             } else if (bucket.isToday) {
+                                                // Today highlight pill when no spending yet
                                                 Box(
                                                     modifier = Modifier
                                                         .width(14.dp)
@@ -620,12 +742,13 @@ fun HomeScreen(
                                                         .background(colors.primary)
                                                 )
                                             } else {
+                                                // Inactive day dash
                                                 Box(
                                                     modifier = Modifier
                                                         .width(14.dp)
                                                         .height(3.dp)
                                                         .clip(RoundedCornerShape(2.dp))
-                                                        .background(colors.textSecondary.copy(alpha = 0.3f))
+                                                        .background(colors.textSecondary.copy(alpha = 0.30f))
                                                 )
                                             }
 
@@ -642,9 +765,10 @@ fun HomeScreen(
                                     }
                                 }
 
+                                // Bottom quiet week / summary banner
                                 Surface(
                                     shape = RoundedCornerShape(14.dp),
-                                    color = colors.surfaceSecondary.copy(alpha = 0.5f),
+                                    color = colors.surfaceSecondary.copy(alpha = 0.50f),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { onNavigateToSummary() }
@@ -688,7 +812,7 @@ fun HomeScreen(
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                             contentDescription = null,
-                                            tint = colors.textSecondary.copy(alpha = 0.7f),
+                                            tint = colors.textSecondary.copy(alpha = 0.70f),
                                             modifier = Modifier.size(13.dp)
                                         )
                                     }
@@ -698,6 +822,7 @@ fun HomeScreen(
                     }
                 }
 
+                // 5. RECENT ACTIVITY (Solid contrast container, user transactions prioritized)
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -733,7 +858,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
                             color = colors.surface,
-                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.7f))
+                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.70f))
                         ) {
                             Box(
                                 modifier = Modifier
@@ -772,7 +897,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
                             color = colors.surface,
-                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.7f))
+                            border = BorderStroke(1.dp, colors.border.copy(alpha = 0.70f))
                         ) {
                             Column {
                                 displayedList.forEachIndexed { index, tx ->
@@ -893,7 +1018,7 @@ fun HomeScreen(
 
                                     if (index < displayedList.size - 1) {
                                         HorizontalDivider(
-                                            color = colors.border.copy(alpha = 0.4f),
+                                            color = colors.border.copy(alpha = 0.40f),
                                             thickness = 0.8.dp,
                                             modifier = Modifier.padding(horizontal = 16.dp)
                                         )
@@ -904,6 +1029,7 @@ fun HomeScreen(
                     }
                 }
 
+                // Ample bottom spacer ensuring FAB and bottom bar never obscure activity content
                 item {
                     Spacer(modifier = Modifier.height(116.dp))
                 }
@@ -914,7 +1040,8 @@ fun HomeScreen(
 
 private data class WalletIdentity(
     val backgroundBrush: Brush,
-    val border: Color,
+    val borderBrush: Brush,
+    val shadowTint: Color,
     val iconContainerColor: Color,
     val iconTint: Color,
     val badgeColor: Color,
@@ -926,10 +1053,13 @@ private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppCol
     return if (colors.isDark) {
         when (name.lowercase()) {
             "upi" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFF1B2E33), Color(0xFF142428))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB3182E33), Color(0x80102125))
                 ),
-                border = Color(0xFF264C56),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.35f), Color(0xFF264C56))
+                ),
+                shadowTint = Color(0x28000000),
                 iconContainerColor = Color(0xFF234B5A),
                 iconTint = Color(0xFF86BCD9),
                 badgeColor = Color(0xFF86BCD9),
@@ -937,10 +1067,13 @@ private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppCol
                 icon = Icons.Default.AccountBalanceWallet
             )
             "cash" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFF1B3326), Color(0xFF14281E))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB3183326), Color(0x8010251C))
                 ),
-                border = Color(0xFF244B36),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.35f), Color(0xFF244B36))
+                ),
+                shadowTint = Color(0x28000000),
                 iconContainerColor = Color(0xFF1F4832),
                 iconTint = Color(0xFF55C28A),
                 badgeColor = Color(0xFF55C28A),
@@ -948,10 +1081,13 @@ private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppCol
                 icon = Icons.Default.Payments
             )
             "savings" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFF33291B), Color(0xFF271F14))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB333291B), Color(0x80241C12))
                 ),
-                border = Color(0xFF4C3C24),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.35f), Color(0xFF4C3C24))
+                ),
+                shadowTint = Color(0x28000000),
                 iconContainerColor = Color(0xFF4A381F),
                 iconTint = Color(0xFFE8B65B),
                 badgeColor = Color(0xFFE8B65B),
@@ -959,10 +1095,13 @@ private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppCol
                 icon = Icons.Default.Savings
             )
             else -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(colors.surfaceElevated, colors.surface)
+                backgroundBrush = Brush.linearGradient(
+                    listOf(colors.surfaceElevated.copy(alpha = 0.70f), colors.surface.copy(alpha = 0.50f))
                 ),
-                border = colors.border,
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.30f), colors.border)
+                ),
+                shadowTint = Color(0x28000000),
                 iconContainerColor = colors.softTealBg,
                 iconTint = colors.primary,
                 badgeColor = colors.textSecondary,
@@ -973,43 +1112,55 @@ private fun resolveWalletIdentity(name: String, type: WalletType, colors: AppCol
     } else {
         when (name.lowercase()) {
             "upi" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFFE8F4F8), Color(0xFFD8ECF3))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB8E0F2FE), Color(0x85BAE6FD))
                 ),
-                border = Color(0xFFC3E0EC),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.90f), Color(0xFF6FA8C9).copy(alpha = 0.40f))
+                ),
+                shadowTint = Color(0x1F6FA8C9),
                 iconContainerColor = Color(0xFF6FA8C9),
                 iconTint = Color.White,
-                badgeColor = Color(0xFF5A94B3),
+                badgeColor = Color(0xFF0369A1),
                 badge = "Digital",
                 icon = Icons.Default.AccountBalanceWallet
             )
             "cash" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFFEBF7F0), Color(0xFFDEF2E6))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB8DCFCE7), Color(0x85BBF7D0))
                 ),
-                border = Color(0xFFC2E8D3),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.90f), Color(0xFF35A875).copy(alpha = 0.40f))
+                ),
+                shadowTint = Color(0x1F35A875),
                 iconContainerColor = Color(0xFF35A875),
                 iconTint = Color.White,
-                badgeColor = Color(0xFF2E8E64),
+                badgeColor = Color(0xFF15803D),
                 badge = "Physical",
                 icon = Icons.Default.Payments
             )
             "savings" -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFFFBF2E3), Color(0xFFF7E7D0))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB8FEF3C7), Color(0x85FDE68A))
                 ),
-                border = Color(0xFFEED7B7),
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.90f), Color(0xFFE8A83E).copy(alpha = 0.40f))
+                ),
+                shadowTint = Color(0x1FE8A83E),
                 iconContainerColor = Color(0xFFE8A83E),
                 iconTint = Color.White,
-                badgeColor = Color(0xFFB57D22),
+                badgeColor = Color(0xFFB45309),
                 badge = "Reserve",
                 icon = Icons.Default.Savings
             )
             else -> WalletIdentity(
-                backgroundBrush = Brush.verticalGradient(
-                    listOf(Color(0xFFF7F5F0), Color(0xFFEAE6DC))
+                backgroundBrush = Brush.linearGradient(
+                    listOf(Color(0xB8F7F5F0), Color(0x85EAE6DC))
                 ),
-                border = SurfaceBorderLight,
+                borderBrush = Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.80f), SurfaceBorderLight)
+                ),
+                shadowTint = Color(0x12167C80),
                 iconContainerColor = DeepTeal,
                 iconTint = Color.White,
                 badgeColor = MutedWarmGray,
@@ -1112,3 +1263,4 @@ private fun formatRelativeDate(timestamp: Long): String {
         else -> SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(timestamp))
     }
 }
+
